@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     # "develop" | "test" | "production"  – steuert DB-Name, Logs, etc.
     APP_ENV: str = "develop"
 
-    # ── Datenbank ──
+    # ── Datenbank (PostgreSQL) ──
     # Wird automatisch je nach APP_ENV gesetzt, kann aber überschrieben werden.
     DATABASE_URL: str = ""
 
@@ -25,6 +25,9 @@ class Settings(BaseSettings):
     # ── AI / APIs ──
     GEMINI_API_KEY: str = ""
 
+    # ── Premium ──
+    PREMIUM_EMAILS: str = ""
+
     # ── CORS ──
     CORS_ORIGINS: list[str] = [
         "http://localhost:5173",
@@ -36,11 +39,18 @@ class Settings(BaseSettings):
         """Setzt DATABASE_URL automatisch anhand APP_ENV, falls nicht explizit gesetzt."""
         if not self.DATABASE_URL:
             db_map = {
-                "develop": "sqlite:///./macromate_dev.db",
-                "test": "sqlite:///./macromate_test.db",
-                "production": "sqlite:///./macromate.db",
+                "develop": "postgresql://macromate:macromate@localhost:5432/macromate_dev",
+                "test": "postgresql://macromate:macromate@localhost:5432/macromate_test",
+                "production": "postgresql://macromate:macromate@localhost:5432/macromate",
             }
             self.DATABASE_URL = db_map.get(self.APP_ENV, db_map["develop"])
+
+    @property
+    def premium_email_list(self) -> list[str]:
+        """Parsed PREMIUM_EMAILS Komma-getrennt zu einer Liste."""
+        if not self.PREMIUM_EMAILS:
+            return []
+        return [e.strip() for e in self.PREMIUM_EMAILS.split(",") if e.strip()]
 
     class Config:
         env_file = ".env"

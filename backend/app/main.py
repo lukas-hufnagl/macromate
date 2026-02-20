@@ -45,13 +45,12 @@ def on_startup():
     """Datenbank-Tabellen beim Start erstellen, falls sie noch nicht existieren."""
     Base.metadata.create_all(bind=engine)
 
-    # ── Premium-User Setup ──
+    # ── Premium-User Setup (aus .env: PREMIUM_EMAILS) ──
     from app.database import SessionLocal
     from app.models.user import User as UserModel
     db = SessionLocal()
     try:
-        premium_emails = ["lukas.hufnagl02@gmail.com"]
-        for email in premium_emails:
+        for email in settings.premium_email_list:
             user = db.query(UserModel).filter(UserModel.email == email).first()
             if user and not user.is_premium:
                 user.is_premium = True

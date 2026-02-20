@@ -1,5 +1,5 @@
 """
-MacroMate – Datenbank-Setup (SQLite + SQLAlchemy)
+MacroMate – Datenbank-Setup (PostgreSQL + SQLAlchemy)
 """
 
 from sqlalchemy import create_engine
@@ -10,7 +10,9 @@ from app.config import settings
 # ── Engine & Session ──
 engine = create_engine(
     settings.DATABASE_URL,
-    connect_args={"check_same_thread": False},  # Nur für SQLite nötig
+    pool_size=10,
+    max_overflow=20,
+    pool_pre_ping=True,
     echo=False,
 )
 
