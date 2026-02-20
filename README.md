@@ -9,22 +9,30 @@ Eine moderne Web-App zur Mahlzeitenplanung basierend auf Kalorien- und Makronäh
 | Frontend  | React 18 + TypeScript + Vite       |
 | Styling   | Tailwind CSS 3                     |
 | State     | Zustand                            |
-| Backend   | FastAPI (Python 3.11+)             |
-| Datenbank | SQLite (lokal)                     |
+| Backend   | FastAPI (Python 3.14+)             |
+| Datenbank | PostgreSQL 16                      |
 | Auth      | JWT + bcrypt (gehashte Passwörter) |
+| DevOps    | Docker, Gunicorn, Nginx, Alembic   |
 
 ## Schnellstart
 
-### Backend
+### Docker (empfohlen)
+```bash
+docker compose up -d
+```
+App öffnen: **http://localhost**
+
+### Manuell
+
+#### Backend
 ```bash
 cd backend
-python -m venv venv
-venv\Scripts\activate        # Windows
+cp .env.example .env          # Env-Vars anpassen
 pip install -r requirements.txt
 uvicorn app.main:app --reload --port 8000
 ```
 
-### Frontend
+#### Frontend
 ```bash
 cd frontend
 npm install

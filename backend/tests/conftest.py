@@ -1,18 +1,18 @@
 """
 MacroMate – Test Configuration (conftest.py)
-Verwendet eine echte PostgreSQL test-DB oder SQLite in-memory als Fallback.
+Verwendet eine PostgreSQL test-DB (per TEST_DATABASE_URL konfigurierbar).
 """
 
 import os
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-# Für Tests: SQLite in-memory als Fallback (kein PG nötig zum Testen)
+# Test-DB: PostgreSQL (docker compose up db → macromate_test DB)
 TEST_DATABASE_URL = os.getenv(
     "TEST_DATABASE_URL",
-    "sqlite:///./test_macromate.db",
+    "postgresql://macromate:macromate@localhost:5432/macromate_test",
 )
 
 # Environment auf test setzen BEVOR app importiert wird
@@ -28,8 +28,7 @@ from app.limiter import limiter  # noqa: E402
 limiter.enabled = False
 
 # ── Test Engine & Session ──
-connect_args = {"check_same_thread": False} if "sqlite" in TEST_DATABASE_URL else {}
-engine = create_engine(TEST_DATABASE_URL, connect_args=connect_args)
+engine = create_engine(TEST_DATABASE_URL)
 TestSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
