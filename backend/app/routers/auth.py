@@ -3,11 +3,12 @@ MacroMate – Auth Router
 Endpoints für Registrierung und Login.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.auth import hash_password, verify_password, create_access_token, get_current_user
+from app.limiter import limiter
 from app.models.user import User
 from app.schemas.user import UserCreate, UserLogin, UserResponse, TokenResponse
 
@@ -15,7 +16,8 @@ router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
 
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
-def register(data: UserCreate, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def register(request: Request, data: UserCreate, db: Session = Depends(get_db)):
     """
     Neuen Benutzer registrieren.
     - Prüft ob Username/Email bereits existieren
@@ -56,7 +58,8 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(data: UserLogin, db: Session = Depends(get_db)):
+@limiter.limit("10/minute")
+def login(request: Request, data: UserLogin, db: Session = Depends(get_db)):
     """
     Benutzer einloggen.
     - Validiert Username + Passwort

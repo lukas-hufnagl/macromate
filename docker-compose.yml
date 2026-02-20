@@ -1,0 +1,58 @@
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  MacroMate – Docker Compose                                ║
+# ║  docker compose up -d                                      ║
+# ╚══════════════════════════════════════════════════════════════╝
+
+services:
+  # ── PostgreSQL ──
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: macromate
+      POSTGRES_PASSWORD: macromate
+      POSTGRES_DB: macromate_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U macromate"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend (FastAPI) ──
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      APP_ENV: develop
+      DATABASE_URL: postgresql://macromate:macromate@db:5432/macromate_dev
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-change-in-production}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      PREMIUM_EMAILS: ${PREMIUM_EMAILS:-}
+      CORS_ORIGINS: '["http://localhost", "http://localhost:5173", "http://localhost:5174"]'
+    ports:
+      - "8000:8000"
+
+  # ── Frontend (Nginx + Vite Build) ──
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  pgdata:
