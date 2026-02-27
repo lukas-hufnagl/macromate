@@ -11,7 +11,9 @@ interface I18nState {
 }
 
 export const useI18nStore = create<I18nState>((set, get) => ({
-  locale: (localStorage.getItem('macromate-locale') as Locale) || 'de',
+  locale: (['de', 'en'].includes(localStorage.getItem('macromate-locale') || '') 
+    ? localStorage.getItem('macromate-locale') as Locale 
+    : 'de'),
 
   setLocale: (locale) => {
     localStorage.setItem('macromate-locale', locale);

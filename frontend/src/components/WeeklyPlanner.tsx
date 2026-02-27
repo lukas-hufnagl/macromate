@@ -6,7 +6,8 @@
 import { useState, useMemo } from 'react';
 import type { MealPlan } from '../types';
 import MealPlanView from './MealPlanView';
-import { Calendar, ChevronLeft, ChevronRight, Sparkles, Loader2 } from 'lucide-react';
+import { useI18nStore } from '../stores/i18nStore';
+import { Calendar, ChevronLeft, ChevronRight, Zap, Loader2 } from 'lucide-react';
 import clsx from 'clsx';
 
 interface Props {
@@ -19,8 +20,9 @@ interface Props {
 const DAY_NAMES = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
 const DAY_NAMES_FULL = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
 
-function getWeekDates(offset: number): { date: string; dayName: string; dayNameFull: string; isToday: boolean }[] {
+function getWeekDates(offset: number): { date: string; dayName: string; dayNameFull: string; isToday: boolean; isPast: boolean }[] {
   const today = new Date();
+  const todayStr = today.toISOString().split('T')[0];
   const monday = new Date(today);
   const dayOfWeek = today.getDay();
   const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
@@ -34,7 +36,8 @@ function getWeekDates(offset: number): { date: string; dayName: string; dayNameF
       date: dateStr,
       dayName: DAY_NAMES[i],
       dayNameFull: DAY_NAMES_FULL[i],
-      isToday: dateStr === today.toISOString().split('T')[0],
+      isToday: dateStr === todayStr,
+      isPast: dateStr < todayStr,
     };
   });
 }
@@ -43,6 +46,7 @@ export default function WeeklyPlanner({ mealPlans, onGenerateDay, onDeletePlan, 
   const [weekOffset, setWeekOffset] = useState(0);
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [generatingDate, setGeneratingDate] = useState<string | null>(null);
+  const t = useI18nStore((s) => s.t);
 
   const weekDates = useMemo(() => getWeekDates(weekOffset), [weekOffset]);
 
@@ -100,7 +104,7 @@ export default function WeeklyPlanner({ mealPlans, onGenerateDay, onDeletePlan, 
           <h3 className="font-semibold text-gray-900 dark:text-white text-sm sm:text-base">{weekLabel}</h3>
           {weekOffset !== 0 && (
             <button onClick={() => setWeekOffset(0)} className="text-xs text-accent-400 hover:underline mt-0.5">
-              Zur aktuellen Woche
+              {t('mealPlanner.toCurrentWeek')}
             </button>
           )}
         </div>
@@ -114,7 +118,7 @@ export default function WeeklyPlanner({ mealPlans, onGenerateDay, onDeletePlan, 
       </div>
 
       {/* Day Grid */}
-      <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+      <div className="grid grid-cols-4 sm:grid-cols-7 gap-1.5 sm:gap-2">
         {weekDates.map((wd) => {
           const plan = plansByDate[wd.date];
           const isSelected = selectedDay === wd.date;
@@ -123,10 +127,13 @@ export default function WeeklyPlanner({ mealPlans, onGenerateDay, onDeletePlan, 
           return (
             <button
               key={wd.date}
-              onClick={() => setSelectedDay(isSelected ? null : wd.date)}
+              onClick={() => !wd.isPast && setSelectedDay(isSelected ? null : wd.date)}
+              disabled={wd.isPast && !plan}
               className={clsx(
                 'relative rounded-xl p-2 sm:p-3 transition-all text-center border',
-                isSelected
+                wd.isPast && !plan
+                  ? 'opacity-40 cursor-not-allowed bg-gray-50 dark:bg-dark-900/20 border-gray-100 dark:border-dark-800/20'
+                  : isSelected
                   ? 'bg-accent-500/15 border-accent-500/40 ring-2 ring-accent-500/20'
                   : wd.isToday
                   ? 'bg-accent-500/5 border-accent-500/20'
@@ -170,7 +177,7 @@ export default function WeeklyPlanner({ mealPlans, onGenerateDay, onDeletePlan, 
             <span className="text-xs font-semibold text-gray-500 dark:text-dark-400 uppercase tracking-wider">
               Woche ({weeklyTotals.days} Tage)
             </span>
-            <div className="flex gap-4 text-xs">
+            <div className="flex flex-wrap gap-2 sm:gap-4 text-xs">
               <span className="text-fire-400 font-semibold">{weeklyTotals.cal} kcal</span>
               <span className="text-blue-400 font-semibold">{weeklyTotals.pro}g P</span>
               <span className="text-yellow-400 font-semibold">{weeklyTotals.fat}g F</span>
@@ -190,13 +197,18 @@ export default function WeeklyPlanner({ mealPlans, onGenerateDay, onDeletePlan, 
         <div className="animate-slide-up">
           {plansByDate[selectedDay] ? (
             <MealPlanView plan={plansByDate[selectedDay]} onDelete={onDeletePlan} />
+          ) : weekDates.find((wd) => wd.date === selectedDay)?.isPast ? (
+            <div className="glass-card p-6 text-center">
+              <Calendar size={32} className="mx-auto mb-3 text-gray-300 dark:text-dark-600" />
+              <p className="text-sm text-gray-400 dark:text-dark-500">{t('mealPlanner.pastDayHint')}</p>
+            </div>
           ) : (
             <div className="glass-card p-6 text-center">
               <Calendar size={32} className="mx-auto mb-3 text-gray-300 dark:text-dark-600" />
               <h4 className="font-semibold text-gray-600 dark:text-dark-300 mb-2">
                 {weekDates.find((wd) => wd.date === selectedDay)?.dayNameFull}, {new Date(selectedDay).toLocaleDateString('de-DE', { day: 'numeric', month: 'long' })}
               </h4>
-              <p className="text-sm text-gray-400 dark:text-dark-500 mb-4">Noch kein Plan für diesen Tag</p>
+              <p className="text-sm text-gray-400 dark:text-dark-500 mb-4">{t('mealPlanner.noPlanYet')}</p>
               <button
                 onClick={() => handleGenerateDay(selectedDay)}
                 disabled={isGenerating}
@@ -205,12 +217,12 @@ export default function WeeklyPlanner({ mealPlans, onGenerateDay, onDeletePlan, 
                 {generatingDate === selectedDay && isGenerating ? (
                   <>
                     <Loader2 size={16} className="animate-spin" />
-                    Wird generiert...
+                    {t('mealPlanner.generating')}
                   </>
                 ) : (
                   <>
-                    <Sparkles size={16} />
-                    Tagesplan generieren
+                    <Zap size={16} />
+                    {t('dashboard.generatePlan')}
                   </>
                 )}
               </button>

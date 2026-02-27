@@ -3,24 +3,41 @@
  * Zeigt einen generierten Tagesplan als übersichtliche Karten-Ansicht.
  */
 
+import { useState } from 'react';
 import type { MealPlan } from '../types';
+import { mealPlanAPI } from '../services/api';
 import NutritionSummary from './NutritionSummary';
-import { Clock, Utensils, Trash2 } from 'lucide-react';
+import { useI18nStore } from '../stores/i18nStore';
+import { Clock, Utensils, Trash2, Share2, Link2, Check, X as XIcon } from 'lucide-react';
 import clsx from 'clsx';
+import toast from 'react-hot-toast';
 
 interface Props {
   plan: MealPlan;
   onDelete?: (id: number) => void;
+  /** Wenn true, wird der Plan im "shared/read-only" Modus angezeigt */
+  isSharedView?: boolean;
 }
 
-const SLOT_INFO: Record<string, { label: string; emoji: string; color: string }> = {
-  frühstück: { label: 'Frühstück', emoji: '🌅', color: 'border-l-amber-400' },
-  mittagessen: { label: 'Mittagessen', emoji: '☀️', color: 'border-l-green-400' },
-  abendessen: { label: 'Abendessen', emoji: '🌙', color: 'border-l-blue-400' },
-  snack: { label: 'Snack', emoji: '🍎', color: 'border-l-purple-400' },
+const SLOT_EMOJI: Record<string, { emoji: string; color: string }> = {
+  frühstück: { emoji: '🌅', color: 'border-l-amber-400' },
+  mittagessen: { emoji: '☀️', color: 'border-l-green-400' },
+  abendessen: { emoji: '🌙', color: 'border-l-blue-400' },
+  snack: { emoji: '🍎', color: 'border-l-purple-400' },
 };
 
-export default function MealPlanView({ plan, onDelete }: Props) {
+const SLOT_KEYS: Record<string, string> = {
+  frühstück: 'mealPlanner.slotBreakfast',
+  mittagessen: 'mealPlanner.slotLunch',
+  abendessen: 'mealPlanner.slotDinner',
+  snack: 'mealPlanner.slotSnack',
+};
+
+export default function MealPlanView({ plan, onDelete, isSharedView }: Props) {
+  const [sharing, setSharing] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const t = useI18nStore((s) => s.t);
+
   const formattedDate = new Date(plan.date).toLocaleDateString('de-DE', {
     weekday: 'long',
     day: 'numeric',
@@ -38,22 +55,92 @@ export default function MealPlanView({ plan, onDelete }: Props) {
               <Utensils size={20} className="text-accent-400" />
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 dark:text-white text-lg">Tagesplan</h3>
+              <h3 className="font-semibold text-gray-900 dark:text-white text-lg">{t('mealPlanner.dailyPlan')}</h3>
               <p className="text-sm text-gray-500 dark:text-dark-400 flex items-center gap-1.5">
                 <Clock size={14} />
                 {formattedDate}
               </p>
             </div>
           </div>
-          {onDelete && (
-            <button
-              onClick={() => onDelete(plan.id)}
-              className="btn-danger text-sm px-4 py-2"
-            >
-              <Trash2 size={14} />
-              Löschen
-            </button>
-          )}
+          <div className="flex items-center gap-2">
+            {/* Share Button */}
+            {!isSharedView && (
+              plan.share_token ? (
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={async () => {
+                      const url = `${window.location.origin}/shared/${plan.share_token}`;
+                      await navigator.clipboard.writeText(url);
+                      setCopied(true);
+                      toast.success(t('mealPlanner.linkCopied'));
+                      setTimeout(() => setCopied(false), 2000);
+                    }}
+                    className="btn-secondary text-sm px-3 py-2"
+                    title={t('general.copied')}
+                  >
+                    {copied ? <Check size={14} className="text-green-500" /> : <Link2 size={14} />}
+                    <span className="hidden sm:inline">{copied ? t('general.copied') : t('mealPlanner.share')}</span>
+                  </button>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await mealPlanAPI.unshare(plan.id);
+                        plan.share_token = null;
+                        toast.success(t('mealPlanner.shareDisabled'));
+                        setSharing(false);
+                      } catch {
+                        toast.error(t('general.error'));
+                      }
+                    }}
+                    className="btn-ghost text-sm px-2 py-2 text-gray-400 hover:text-red-400"
+                    title={t('mealPlanner.stopSharing')}
+                  >
+                    <XIcon size={14} />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={async () => {
+                    setSharing(true);
+                    try {
+                      const token = await mealPlanAPI.share(plan.id);
+                      plan.share_token = token;
+                      const url = `${window.location.origin}/shared/${token}`;
+                      await navigator.clipboard.writeText(url);
+                      setCopied(true);
+                      toast.success(t('mealPlanner.linkCopied'));
+                      setTimeout(() => setCopied(false), 2000);
+                    } catch {
+                      toast.error(t('mealPlanner.shareError'));
+                    } finally {
+                      setSharing(false);
+                    }
+                  }}
+                  disabled={sharing}
+                  className="btn-secondary text-sm px-3 py-2"
+                >
+                  <Share2 size={14} />
+                  <span className="hidden sm:inline">{t('mealPlanner.share')}</span>
+                </button>
+              )
+            )}
+            {/* Shared badge */}
+            {isSharedView && (
+              <span className="text-xs px-3 py-1.5 rounded-full bg-accent-50 dark:bg-accent-500/10 text-accent-600 dark:text-accent-400 font-medium flex items-center gap-1.5">
+                <Share2 size={12} />
+                {t('mealPlanner.sharedPlan')}
+              </span>
+            )}
+            {onDelete && !isSharedView && (
+              <button
+                onClick={() => onDelete(plan.id)}
+                className="btn-danger text-sm px-4 py-2"
+              >
+                <Trash2 size={14} />
+                <span className="hidden sm:inline">{t('recipes.delete')}</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Nährwert-Zusammenfassung */}
@@ -76,32 +163,32 @@ export default function MealPlanView({ plan, onDelete }: Props) {
       {/* Mahlzeiten */}
       <div className="p-6 space-y-3">
         {plan.entries.map((entry, index) => {
-          const slot = SLOT_INFO[entry.meal_slot] || {
-            label: entry.meal_slot,
+          const slotVisual = SLOT_EMOJI[entry.meal_slot] || {
             emoji: '🍽️',
             color: 'border-l-dark-600',
           };
+          const slotLabel = SLOT_KEYS[entry.meal_slot] ? t(SLOT_KEYS[entry.meal_slot]) : entry.meal_slot;
 
           return (
             <div
               key={entry.id}
               className={clsx(
                 'p-4 rounded-xl bg-gray-50 dark:bg-dark-900/30 border border-gray-200 dark:border-dark-800/30 border-l-4 transition-all hover:bg-gray-100 dark:hover:bg-dark-850/50',
-                slot.color
+                slotVisual.color
               )}
               style={{ animationDelay: `${index * 100}ms` }}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="text-lg">{slot.emoji}</span>
+                    <span className="text-lg">{slotVisual.emoji}</span>
                     <span className="text-xs font-semibold text-gray-500 dark:text-dark-400 uppercase tracking-wider">
-                      {slot.label}
+                      {slotLabel}
                     </span>
                   </div>
                   <h4 className="font-semibold text-gray-900 dark:text-white">{entry.recipe.name}</h4>
                   <p className="text-sm text-gray-500 dark:text-dark-400 mt-0.5">
-                    {entry.servings} {entry.servings === 1 ? 'Portion' : 'Portionen'}
+                    {entry.servings} {entry.servings === 1 ? t('general.portion') : t('general.portions')}
                   </p>
                 </div>
 
@@ -139,7 +226,7 @@ export default function MealPlanView({ plan, onDelete }: Props) {
 
         {plan.entries.length === 0 && (
           <div className="text-center py-8 text-gray-400 dark:text-dark-500">
-            Keine Mahlzeiten in diesem Plan.
+            {t('mealPlanner.noMeals')}
           </div>
         )}
       </div>

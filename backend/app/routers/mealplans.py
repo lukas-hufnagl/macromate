@@ -1,8 +1,9 @@
 """
 MacroMate – MealPlan Router
-Endpoints für Tagesplan-Generierung, Abruf und Einkaufsliste.
+Endpoints für Tagesplan-Generierung, Abruf, Sharing und Einkaufsliste.
 """
 
+import secrets
 from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
@@ -20,6 +21,7 @@ from app.schemas.mealplan import (
     ShoppingListItem,
 )
 from app.services.mealplan_generator import generate_meal_plan
+from app.services.builtin_recipes import get_builtin_recipes_for_generation
 
 router = APIRouter(prefix="/api/mealplans", tags=["MealPlans"])
 
@@ -81,6 +83,7 @@ def generate_plan(
     """
     Generiert einen Tagesplan basierend auf Kalorien- und Makronährstoffzielen.
     - Holt alle Rezepte des Users (optional gefiltert nach Kategorie)
+    - Falls der User keine eigenen Rezepte hat, nutzt built-in Rezepte
     - Nutzt den MealPlan-Generator-Service für die optimale Kombination
     - Speichert den Plan in der DB
     """
@@ -88,10 +91,50 @@ def generate_plan(
     query = db.query(Recipe).filter(Recipe.user_id == current_user.id)
     if data.categories:
         query = query.filter(Recipe.category.in_(data.categories))
-    recipes = query.all()
+    user_recipes = query.all()
+
+    use_builtin = len(user_recipes) == 0
+
+    if use_builtin:
+        # Use built-in recipes — create temporary Recipe-like objects
+        user_allergies = current_user.allergies or []
+        user_diet = current_user.diet_type
+        builtin = get_builtin_recipes_for_generation(
+            categories=data.categories,
+            diet_type=user_diet,
+            allergies=user_allergies,
+        )
+        if not builtin:
+            raise HTTPException(status_code=400, detail="Keine passenden Rezepte für deine Ernährungspräferenzen gefunden.")
+
+        # Save builtin recipes to DB for this user (so MealPlanEntry can reference them)
+        recipes = []
+        for br in builtin:
+            recipe = Recipe(
+                user_id=current_user.id,
+                name=br["name"],
+                description=br.get("description", ""),
+                instructions=br.get("instructions", ""),
+                category=br["category"],
+                meal_type=br["meal_type"],
+                calories=br["calories"],
+                protein=br["protein"],
+                fat=br["fat"],
+                carbs=br["carbs"],
+                servings=br["servings"],
+            )
+            db.add(recipe)
+            recipes.append(recipe)
+        db.flush()  # assign IDs
+    else:
+        recipes = user_recipes
 
     if not recipes:
         raise HTTPException(status_code=400, detail="Keine Rezepte vorhanden. Bitte erst Rezepte anlegen.")
+
+    # No past meal plans
+    if data.date < date.today():
+        raise HTTPException(status_code=400, detail="Du kannst keine Essenspläne für die Vergangenheit erstellen.")
 
     # Bestehenden Plan für das Datum löschen
     existing = (
@@ -167,6 +210,59 @@ def get_meal_plan(
     if not plan:
         raise HTTPException(status_code=404, detail="Tagesplan nicht gefunden")
     return _build_mealplan_response(plan)
+
+
+@router.get("/shared/{share_token}", response_model=MealPlanResponse)
+def get_shared_plan(
+    share_token: str,
+    db: Session = Depends(get_db),
+):
+    """Öffentlich geteilten Tagesplan anzeigen (kein Login nötig)."""
+    plan = db.query(MealPlan).filter(MealPlan.share_token == share_token).first()
+    if not plan:
+        raise HTTPException(status_code=404, detail="Geteilter Plan nicht gefunden oder Link ungültig.")
+    return _build_mealplan_response(plan)
+
+
+@router.post("/{plan_id}/share")
+def share_plan(
+    plan_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Plan teilen – generiert einen Share-Token und gibt die URL zurück."""
+    plan = (
+        db.query(MealPlan)
+        .filter(MealPlan.id == plan_id, MealPlan.user_id == current_user.id)
+        .first()
+    )
+    if not plan:
+        raise HTTPException(status_code=404, detail="Tagesplan nicht gefunden")
+
+    if not plan.share_token:
+        plan.share_token = secrets.token_urlsafe(16)
+        db.commit()
+        db.refresh(plan)
+
+    return {"share_token": plan.share_token}
+
+
+@router.delete("/{plan_id}/share", status_code=204)
+def unshare_plan(
+    plan_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Plan-Sharing beenden – löscht den Share-Token."""
+    plan = (
+        db.query(MealPlan)
+        .filter(MealPlan.id == plan_id, MealPlan.user_id == current_user.id)
+        .first()
+    )
+    if not plan:
+        raise HTTPException(status_code=404, detail="Tagesplan nicht gefunden")
+    plan.share_token = None
+    db.commit()
 
 
 @router.delete("/{plan_id}", status_code=204)

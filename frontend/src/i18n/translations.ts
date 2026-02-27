@@ -1,29 +1,21 @@
-/**
- * MacroMate – i18n (Internationalization)
- * 
- * Unterstützte Sprachen: Deutsch (de), English (en), Español (es), Français (fr)
- * Translations werden lazy geladen, Sprache im localStorage gespeichert.
- */
-
-export type Locale = 'de' | 'en' | 'es' | 'fr';
+export type Locale = 'de' | 'en';
 
 export const LOCALE_OPTIONS: { value: Locale; label: string; flag: string }[] = [
   { value: 'de', label: 'Deutsch', flag: '🇩🇪' },
   { value: 'en', label: 'English', flag: '🇬🇧' },
-  { value: 'es', label: 'Español', flag: '🇪🇸' },
-  { value: 'fr', label: 'Français', flag: '🇫🇷' },
 ];
 
 type TranslationKeys = {
-  // Nav
   'nav.dashboard': string;
   'nav.recipes': string;
   'nav.mealPlanner': string;
   'nav.shoppingList': string;
   'nav.profile': string;
   'nav.logout': string;
+  'nav.favorites': string;
+  'nav.statistics': string;
+  'nav.shortcuts': string;
 
-  // Auth
   'auth.login': string;
   'auth.register': string;
   'auth.username': string;
@@ -37,7 +29,6 @@ type TranslationKeys = {
   'auth.welcomeBack': string;
   'auth.createAccount': string;
 
-  // Dashboard
   'dashboard.welcome': string;
   'dashboard.todaysPlan': string;
   'dashboard.quickStats': string;
@@ -47,15 +38,36 @@ type TranslationKeys = {
   'dashboard.recentRecipes': string;
   'dashboard.recommendations': string;
   'dashboard.basedOnYour': string;
+  'dashboard.noPlanToday': string;
+  'dashboard.noPlanDesc': string;
+  'dashboard.generatePlan': string;
+  'dashboard.remainingKcal': string;
+  'dashboard.adjustGoals': string;
+  'dashboard.hideGoals': string;
+  'dashboard.tipOfDay': string;
+  'dashboard.viewList': string;
+  'dashboard.ofKcal': string;
+  'dashboard.goodMorning': string;
+  'dashboard.goodAfternoon': string;
+  'dashboard.goodEvening': string;
+  'dashboard.overview': string;
+  'dashboard.viewAll': string;
+  'dashboard.noPlanHint': string;
+  'dashboard.gettingStarted': string;
+  'dashboard.step1': string;
+  'dashboard.step2': string;
+  'dashboard.step3': string;
+  'dashboard.startNow': string;
 
-  // Recipes
   'recipes.title': string;
   'recipes.addRecipe': string;
   'recipes.editRecipe': string;
+  'recipes.newRecipe': string;
   'recipes.searchPlaceholder': string;
   'recipes.allCategories': string;
   'recipes.allTypes': string;
   'recipes.noRecipes': string;
+  'recipes.noMatch': string;
   'recipes.name': string;
   'recipes.description': string;
   'recipes.instructions': string;
@@ -80,8 +92,21 @@ type TranslationKeys = {
   'recipes.showDetails': string;
   'recipes.showLess': string;
   'recipes.preparation': string;
+  'recipes.step': string;
+  'recipes.addedToBook': string;
+  'recipes.nutritionAuto': string;
+  'recipes.nutritionLoaded': string;
+  'recipes.nutritionManual': string;
+  'recipes.creating': string;
+  'recipes.updating': string;
+  'recipes.removeFav': string;
+  'recipes.addFav': string;
+  'recipes.highProtein': string;
+  'recipes.lowCalorie': string;
+  'recipes.lowCarb': string;
+  'recipes.lowFat': string;
+  'recipes.fitness': string;
 
-  // Macro Filter
   'macroFilter.title': string;
   'macroFilter.minProtein': string;
   'macroFilter.maxProtein': string;
@@ -90,9 +115,9 @@ type TranslationKeys = {
   'macroFilter.macros': string;
   'macroFilter.reset': string;
 
-  // Meal Planner
   'mealPlanner.title': string;
   'mealPlanner.generate': string;
+  'mealPlanner.generating': string;
   'mealPlanner.macroGoals': string;
   'mealPlanner.dateRange': string;
   'mealPlanner.history': string;
@@ -108,8 +133,45 @@ type TranslationKeys = {
   'mealPlanner.generateForDay': string;
   'mealPlanner.weekSummary': string;
   'mealPlanner.planSubtitle': string;
+  'mealPlanner.dailyPlan': string;
+  'mealPlanner.planGenerated': string;
+  'mealPlanner.deletePlan': string;
+  'mealPlanner.deleteConfirm': string;
+  'mealPlanner.planDeleted': string;
+  'mealPlanner.settings': string;
+  'mealPlanner.date': string;
+  'mealPlanner.categoryFilter': string;
+  'mealPlanner.categoryHint': string;
+  'mealPlanner.algorithmDesc': string;
+  'mealPlanner.builtinHint': string;
+  'mealPlanner.availableRecipes': string;
+  'mealPlanner.savedPlans': string;
+  'mealPlanner.targetCalories': string;
+  'mealPlanner.previousPlans': string;
+  'mealPlanner.noPlanYet': string;
+  'mealPlanner.household': string;
+  'mealPlanner.householdPlans': string;
+  'mealPlanner.householdDesc': string;
+  'mealPlanner.loadingPlans': string;
+  'mealPlanner.noHouseholdPlans': string;
+  'mealPlanner.noHouseholdHint': string;
+  'mealPlanner.morePlans': string;
+  'mealPlanner.pastDayHint': string;
+  'mealPlanner.noMeals': string;
+  'mealPlanner.day': string;
+  'mealPlanner.week': string;
+  'mealPlanner.toCurrentWeek': string;
+  'mealPlanner.share': string;
+  'mealPlanner.linkCopied': string;
+  'mealPlanner.shareError': string;
+  'mealPlanner.sharedPlan': string;
+  'mealPlanner.slotBreakfast': string;
+  'mealPlanner.slotLunch': string;
+  'mealPlanner.slotDinner': string;
+  'mealPlanner.slotSnack': string;
+  'mealPlanner.shareDisabled': string;
+  'mealPlanner.stopSharing': string;
 
-  // Shopping List
   'shoppingList.title': string;
   'shoppingList.export': string;
   'shoppingList.exportPDF': string;
@@ -117,8 +179,11 @@ type TranslationKeys = {
   'shoppingList.progress': string;
   'shoppingList.allDone': string;
   'shoppingList.empty': string;
+  'shoppingList.created': string;
+  'shoppingList.selectRange': string;
+  'shoppingList.ingredient': string;
+  'shoppingList.amount': string;
 
-  // Profile
   'profile.title': string;
   'profile.settings': string;
   'profile.language': string;
@@ -131,21 +196,29 @@ type TranslationKeys = {
   'profile.recipesCreated': string;
   'profile.plansGenerated': string;
   'profile.changePassword': string;
+  'profile.household': string;
+  'profile.allergies': string;
+  'profile.dietType': string;
+  'profile.bodyData': string;
+  'profile.noRestriction': string;
 
-  // Premium
+  'goals.title': string;
+  'goals.subtitle': string;
+  'goals.saved': string;
+  'goals.reset': string;
+  'goals.saveGoals': string;
+
   'premium.title': string;
   'premium.comingSoon': string;
   'premium.subtitle': string;
   'premium.upgrade': string;
 
-  // Confirm Dialog
   'confirm.delete': string;
   'confirm.deleteMessage': string;
   'confirm.yes': string;
   'confirm.no': string;
   'confirm.cancel': string;
 
-  // General
   'general.loading': string;
   'general.error': string;
   'general.success': string;
@@ -158,8 +231,18 @@ type TranslationKeys = {
   'general.all': string;
   'general.add': string;
   'general.added': string;
+  'general.portion': string;
+  'general.portions': string;
+  'general.searchIngredient': string;
+  'general.amount': string;
+  'general.copied': string;
+  'general.notFound': string;
+  'general.manualEntry': string;
+  'general.results': string;
+  'general.per100g': string;
+  'general.lightMode': string;
+  'general.darkMode': string;
 
-  // Units
   'unit.g': string;
   'unit.ml': string;
   'unit.stk': string;
@@ -182,6 +265,9 @@ const de: TranslationKeys = {
   'nav.shoppingList': 'Einkaufsliste',
   'nav.profile': 'Profil',
   'nav.logout': 'Abmelden',
+  'nav.favorites': 'Favoriten',
+  'nav.statistics': 'Statistiken',
+  'nav.shortcuts': 'Schnellzugriff',
 
   'auth.login': 'Anmelden',
   'auth.register': 'Registrieren',
@@ -205,14 +291,36 @@ const de: TranslationKeys = {
   'dashboard.recentRecipes': 'Neueste Rezepte',
   'dashboard.recommendations': 'Empfehlungen für dich',
   'dashboard.basedOnYour': 'Basierend auf deinen bisherigen Rezepten',
+  'dashboard.noPlanToday': 'Kein Plan für heute',
+  'dashboard.noPlanDesc': 'Erstelle einen nutri-optimierten Tagesplan basierend auf deinen Makrozielen.',
+  'dashboard.generatePlan': 'Tagesplan generieren',
+  'dashboard.remainingKcal': 'Noch übrig heute',
+  'dashboard.adjustGoals': 'Ziele anpassen',
+  'dashboard.hideGoals': 'Ziele ausblenden',
+  'dashboard.tipOfDay': 'Tipp des Tages',
+  'dashboard.viewList': 'Anzeigen',
+  'dashboard.ofKcal': 'von',
+  'dashboard.goodMorning': 'Guten Morgen',
+  'dashboard.goodAfternoon': 'Guten Tag',
+  'dashboard.goodEvening': 'Guten Abend',
+  'dashboard.overview': 'Übersicht',
+  'dashboard.viewAll': 'Alle',
+  'dashboard.noPlanHint': 'Erstelle einen nutri-optimierten Tagesplan basierend auf deinen Makrozielen.',
+  'dashboard.gettingStarted': 'So startest du durch',
+  'dashboard.step1': 'Setze deine Makroziele im Profil',
+  'dashboard.step2': 'Füge eigene Rezepte hinzu oder entdecke Vorlagen',
+  'dashboard.step3': 'Generiere deinen ersten Tagesplan',
+  'dashboard.startNow': 'Profil einrichten',
 
   'recipes.title': 'Meine Rezepte',
   'recipes.addRecipe': 'Rezept hinzufügen',
   'recipes.editRecipe': 'Rezept bearbeiten',
+  'recipes.newRecipe': 'Neues Rezept',
   'recipes.searchPlaceholder': 'Rezepte durchsuchen...',
   'recipes.allCategories': 'Alle Kategorien',
   'recipes.allTypes': 'Alle Typen',
   'recipes.noRecipes': 'Noch keine Rezepte. Erstelle dein erstes!',
+  'recipes.noMatch': 'Keine passenden Rezepte',
   'recipes.name': 'Name',
   'recipes.description': 'Beschreibung',
   'recipes.instructions': 'Zubereitung / Anleitung',
@@ -237,6 +345,20 @@ const de: TranslationKeys = {
   'recipes.showDetails': 'Details anzeigen',
   'recipes.showLess': 'Weniger anzeigen',
   'recipes.preparation': 'Zubereitung',
+  'recipes.step': 'Schritt',
+  'recipes.addedToBook': 'Zu deinem Kochbuch hinzugefügt!',
+  'recipes.nutritionAuto': 'Nährwerte werden automatisch aus den Zutaten berechnet',
+  'recipes.nutritionLoaded': 'Nährwerte werden beim Auswählen automatisch geladen',
+  'recipes.nutritionManual': 'Nährwerte pro 100g — manuell anpassbar',
+  'recipes.creating': 'Erstellen...',
+  'recipes.updating': 'Aktualisieren',
+  'recipes.removeFav': 'Favorit entfernen',
+  'recipes.addFav': 'Als Favorit markieren',
+  'recipes.highProtein': 'High Protein',
+  'recipes.lowCalorie': 'Low Calorie',
+  'recipes.lowCarb': 'Low Carb',
+  'recipes.lowFat': 'Low Fat',
+  'recipes.fitness': 'Fitness',
 
   'macroFilter.title': 'Makro-Filter',
   'macroFilter.minProtein': 'Min. Protein',
@@ -248,6 +370,7 @@ const de: TranslationKeys = {
 
   'mealPlanner.title': 'Essensplaner',
   'mealPlanner.generate': 'Plan generieren',
+  'mealPlanner.generating': 'Wird generiert...',
   'mealPlanner.macroGoals': 'Makro-Ziele',
   'mealPlanner.dateRange': 'Zeitraum',
   'mealPlanner.history': 'Verlauf',
@@ -262,7 +385,45 @@ const de: TranslationKeys = {
   'mealPlanner.noPlanForDay': 'Kein Plan für diesen Tag',
   'mealPlanner.generateForDay': 'Plan generieren',
   'mealPlanner.weekSummary': 'Wochenübersicht',
-  'mealPlanner.planSubtitle': 'Plane deine Mahlzeiten für die Woche',
+  'mealPlanner.planSubtitle': 'Plane deine Mahlzeiten für den Tag oder die ganze Woche',
+  'mealPlanner.dailyPlan': 'Tagesplan generieren',
+  'mealPlanner.planGenerated': 'Tagesplan generiert! 🎉',
+  'mealPlanner.deletePlan': 'Plan löschen?',
+  'mealPlanner.deleteConfirm': 'Möchtest du diesen Tagesplan wirklich löschen? Das kann nicht rückgängig gemacht werden.',
+  'mealPlanner.planDeleted': 'Plan gelöscht',
+  'mealPlanner.settings': 'Plan-Einstellungen',
+  'mealPlanner.date': 'Datum',
+  'mealPlanner.categoryFilter': 'Kategorien filtern (optional)',
+  'mealPlanner.categoryHint': 'Nur Rezepte aus gewählten Kategorien werden berücksichtigt',
+  'mealPlanner.algorithmDesc': 'Der Algorithmus wählt die besten Rezepte für deine Makroziele aus und berechnet optimale Portionsgrößen.',
+  'mealPlanner.builtinHint': 'Wir nutzen vorgefertigte Rezepte für deinen Plan',
+  'mealPlanner.availableRecipes': 'Verfügbare Rezepte',
+  'mealPlanner.savedPlans': 'Gespeicherte Pläne',
+  'mealPlanner.targetCalories': 'Ziel-Kalorien',
+  'mealPlanner.previousPlans': 'Bisherige Pläne',
+  'mealPlanner.noPlanYet': 'Noch keine Pläne generiert.',
+  'mealPlanner.household': 'Haushalt',
+  'mealPlanner.householdPlans': 'Pläne',
+  'mealPlanner.householdDesc': 'Übersicht der Ernährungspläne aller Haushaltsmitglieder',
+  'mealPlanner.loadingPlans': 'Pläne werden geladen...',
+  'mealPlanner.noHouseholdPlans': 'Noch keine Pläne im Haushalt vorhanden.',
+  'mealPlanner.noHouseholdHint': 'Erstelle einen Plan und deine Mitbewohner sehen ihn hier.',
+  'mealPlanner.morePlans': 'weitere Pläne',
+  'mealPlanner.pastDayHint': 'Für vergangene Tage kann kein Plan erstellt werden.',
+  'mealPlanner.noMeals': 'Keine Mahlzeiten in diesem Plan.',
+  'mealPlanner.day': 'Tag',
+  'mealPlanner.week': 'Woche',
+  'mealPlanner.toCurrentWeek': 'Zur aktuellen Woche',
+  'mealPlanner.share': 'Teilen',
+  'mealPlanner.linkCopied': 'Link kopiert!',
+  'mealPlanner.shareError': 'Fehler beim Teilen',
+  'mealPlanner.sharedPlan': 'Geteilter Plan',
+  'mealPlanner.slotBreakfast': 'Frühstück',
+  'mealPlanner.slotLunch': 'Mittagessen',
+  'mealPlanner.slotDinner': 'Abendessen',
+  'mealPlanner.slotSnack': 'Snack',
+  'mealPlanner.shareDisabled': 'Sharing deaktiviert',
+  'mealPlanner.stopSharing': 'Sharing beenden',
 
   'shoppingList.title': 'Einkaufsliste',
   'shoppingList.export': 'Exportieren',
@@ -271,6 +432,10 @@ const de: TranslationKeys = {
   'shoppingList.progress': 'Fortschritt',
   'shoppingList.allDone': 'Alles erledigt! 🎉',
   'shoppingList.empty': 'Keine Einträge',
+  'shoppingList.created': 'Einkaufsliste erstellt!',
+  'shoppingList.selectRange': 'Wähle einen Zeitraum und erstelle eine Einkaufsliste.',
+  'shoppingList.ingredient': 'Zutat',
+  'shoppingList.amount': 'Menge',
 
   'profile.title': 'Mein Profil',
   'profile.settings': 'Einstellungen',
@@ -284,6 +449,17 @@ const de: TranslationKeys = {
   'profile.recipesCreated': 'Rezepte erstellt',
   'profile.plansGenerated': 'Pläne generiert',
   'profile.changePassword': 'Passwort ändern',
+  'profile.household': 'Haushalt',
+  'profile.allergies': 'Allergien & Ernährung',
+  'profile.dietType': 'Ernährungsform',
+  'profile.bodyData': 'Deine Körperdaten',
+  'profile.noRestriction': 'Keine Einschränkung',
+
+  'goals.title': 'Tagesziele',
+  'goals.subtitle': 'Passe deine Makronährstoffziele an',
+  'goals.saved': 'Ziele gespeichert! 🎯',
+  'goals.reset': 'Ziele zurückgesetzt',
+  'goals.saveGoals': 'Ziele speichern',
 
   'premium.title': 'MacroMate Premium',
   'premium.comingSoon': 'Demnächst verfügbar',
@@ -308,6 +484,17 @@ const de: TranslationKeys = {
   'general.all': 'Alle',
   'general.add': 'Hinzufügen',
   'general.added': 'Hinzugefügt',
+  'general.portion': 'Portion',
+  'general.portions': 'Portionen',
+  'general.searchIngredient': 'Zutat suchen...',
+  'general.amount': 'Menge',
+  'general.copied': 'Kopiert!',
+  'general.notFound': 'Nicht gefunden',
+  'general.manualEntry': 'Manuell eingeben',
+  'general.results': 'Ergebnisse',
+  'general.per100g': 'pro 100g',
+  'general.lightMode': 'Light Mode',
+  'general.darkMode': 'Dark Mode',
 
   'unit.g': 'g',
   'unit.ml': 'ml',
@@ -331,6 +518,9 @@ const en: TranslationKeys = {
   'nav.shoppingList': 'Shopping List',
   'nav.profile': 'Profile',
   'nav.logout': 'Logout',
+  'nav.favorites': 'Favorites',
+  'nav.statistics': 'Statistics',
+  'nav.shortcuts': 'Shortcuts',
 
   'auth.login': 'Login',
   'auth.register': 'Register',
@@ -354,14 +544,36 @@ const en: TranslationKeys = {
   'dashboard.recentRecipes': 'Recent Recipes',
   'dashboard.recommendations': 'Recommended for you',
   'dashboard.basedOnYour': 'Based on your existing recipes',
+  'dashboard.noPlanToday': 'No plan for today',
+  'dashboard.noPlanDesc': 'Create a nutrition-optimized daily plan based on your macro goals.',
+  'dashboard.generatePlan': 'Generate Daily Plan',
+  'dashboard.remainingKcal': 'Remaining today',
+  'dashboard.adjustGoals': 'Adjust Goals',
+  'dashboard.hideGoals': 'Hide Goals',
+  'dashboard.tipOfDay': 'Tip of the Day',
+  'dashboard.viewList': 'View',
+  'dashboard.ofKcal': 'of',
+  'dashboard.goodMorning': 'Good Morning',
+  'dashboard.goodAfternoon': 'Good Afternoon',
+  'dashboard.goodEvening': 'Good Evening',
+  'dashboard.overview': 'Overview',
+  'dashboard.viewAll': 'View All',
+  'dashboard.noPlanHint': 'Create a nutri-optimized daily plan based on your macro goals.',
+  'dashboard.gettingStarted': 'Get started',
+  'dashboard.step1': 'Set your macro goals in your profile',
+  'dashboard.step2': 'Add your own recipes or browse templates',
+  'dashboard.step3': 'Generate your first daily plan',
+  'dashboard.startNow': 'Set up profile',
 
   'recipes.title': 'My Recipes',
   'recipes.addRecipe': 'Add Recipe',
   'recipes.editRecipe': 'Edit Recipe',
+  'recipes.newRecipe': 'New Recipe',
   'recipes.searchPlaceholder': 'Search recipes...',
   'recipes.allCategories': 'All Categories',
   'recipes.allTypes': 'All Types',
   'recipes.noRecipes': 'No recipes yet. Create your first!',
+  'recipes.noMatch': 'No matching recipes',
   'recipes.name': 'Name',
   'recipes.description': 'Description',
   'recipes.instructions': 'Instructions',
@@ -386,6 +598,20 @@ const en: TranslationKeys = {
   'recipes.showDetails': 'Show Details',
   'recipes.showLess': 'Show Less',
   'recipes.preparation': 'Preparation',
+  'recipes.step': 'Step',
+  'recipes.addedToBook': 'Added to your cookbook!',
+  'recipes.nutritionAuto': 'Nutrition values are calculated automatically from ingredients',
+  'recipes.nutritionLoaded': 'Nutrition values are loaded automatically when selecting',
+  'recipes.nutritionManual': 'Nutrition per 100g — manually adjustable',
+  'recipes.creating': 'Creating...',
+  'recipes.updating': 'Update',
+  'recipes.removeFav': 'Remove favorite',
+  'recipes.addFav': 'Add to favorites',
+  'recipes.highProtein': 'High Protein',
+  'recipes.lowCalorie': 'Low Calorie',
+  'recipes.lowCarb': 'Low Carb',
+  'recipes.lowFat': 'Low Fat',
+  'recipes.fitness': 'Fitness',
 
   'macroFilter.title': 'Macro Filter',
   'macroFilter.minProtein': 'Min Protein',
@@ -397,6 +623,7 @@ const en: TranslationKeys = {
 
   'mealPlanner.title': 'Meal Planner',
   'mealPlanner.generate': 'Generate Plan',
+  'mealPlanner.generating': 'Generating...',
   'mealPlanner.macroGoals': 'Macro Goals',
   'mealPlanner.dateRange': 'Date Range',
   'mealPlanner.history': 'History',
@@ -411,7 +638,45 @@ const en: TranslationKeys = {
   'mealPlanner.noPlanForDay': 'No plan for this day',
   'mealPlanner.generateForDay': 'Generate Plan',
   'mealPlanner.weekSummary': 'Week Summary',
-  'mealPlanner.planSubtitle': 'Plan your meals for the week',
+  'mealPlanner.planSubtitle': 'Plan your meals for the day or the entire week',
+  'mealPlanner.dailyPlan': 'Generate Daily Plan',
+  'mealPlanner.planGenerated': 'Daily plan generated! 🎉',
+  'mealPlanner.deletePlan': 'Delete plan?',
+  'mealPlanner.deleteConfirm': 'Do you really want to delete this daily plan? This cannot be undone.',
+  'mealPlanner.planDeleted': 'Plan deleted',
+  'mealPlanner.settings': 'Plan Settings',
+  'mealPlanner.date': 'Date',
+  'mealPlanner.categoryFilter': 'Filter categories (optional)',
+  'mealPlanner.categoryHint': 'Only recipes from selected categories will be considered',
+  'mealPlanner.algorithmDesc': 'The algorithm selects the best recipes for your macro goals and calculates optimal portion sizes.',
+  'mealPlanner.builtinHint': 'We use pre-built recipes for your plan',
+  'mealPlanner.availableRecipes': 'Available Recipes',
+  'mealPlanner.savedPlans': 'Saved Plans',
+  'mealPlanner.targetCalories': 'Target Calories',
+  'mealPlanner.previousPlans': 'Previous Plans',
+  'mealPlanner.noPlanYet': 'No plans generated yet.',
+  'mealPlanner.household': 'Household',
+  'mealPlanner.householdPlans': 'Plans',
+  'mealPlanner.householdDesc': 'Overview of meal plans from all household members',
+  'mealPlanner.loadingPlans': 'Loading plans...',
+  'mealPlanner.noHouseholdPlans': 'No plans in the household yet.',
+  'mealPlanner.noHouseholdHint': 'Create a plan and your roommates will see it here.',
+  'mealPlanner.morePlans': 'more plans',
+  'mealPlanner.pastDayHint': 'Plans cannot be created for past days.',
+  'mealPlanner.noMeals': 'No meals in this plan.',
+  'mealPlanner.day': 'Day',
+  'mealPlanner.week': 'Week',
+  'mealPlanner.toCurrentWeek': 'Go to current week',
+  'mealPlanner.share': 'Share',
+  'mealPlanner.linkCopied': 'Link copied!',
+  'mealPlanner.shareError': 'Error sharing',
+  'mealPlanner.sharedPlan': 'Shared Plan',
+  'mealPlanner.slotBreakfast': 'Breakfast',
+  'mealPlanner.slotLunch': 'Lunch',
+  'mealPlanner.slotDinner': 'Dinner',
+  'mealPlanner.slotSnack': 'Snack',
+  'mealPlanner.shareDisabled': 'Sharing disabled',
+  'mealPlanner.stopSharing': 'Stop sharing',
 
   'shoppingList.title': 'Shopping List',
   'shoppingList.export': 'Export',
@@ -420,6 +685,10 @@ const en: TranslationKeys = {
   'shoppingList.progress': 'Progress',
   'shoppingList.allDone': 'All done! 🎉',
   'shoppingList.empty': 'No items',
+  'shoppingList.created': 'Shopping list created!',
+  'shoppingList.selectRange': 'Select a date range and create a shopping list.',
+  'shoppingList.ingredient': 'Ingredient',
+  'shoppingList.amount': 'Amount',
 
   'profile.title': 'My Profile',
   'profile.settings': 'Settings',
@@ -433,6 +702,17 @@ const en: TranslationKeys = {
   'profile.recipesCreated': 'Recipes created',
   'profile.plansGenerated': 'Plans generated',
   'profile.changePassword': 'Change Password',
+  'profile.household': 'Household',
+  'profile.allergies': 'Allergies & Diet',
+  'profile.dietType': 'Diet type',
+  'profile.bodyData': 'Your Body Data',
+  'profile.noRestriction': 'No restriction',
+
+  'goals.title': 'Daily Goals',
+  'goals.subtitle': 'Adjust your macronutrient goals',
+  'goals.saved': 'Goals saved! 🎯',
+  'goals.reset': 'Goals reset',
+  'goals.saveGoals': 'Save Goals',
 
   'premium.title': 'MacroMate Premium',
   'premium.comingSoon': 'Coming Soon',
@@ -457,6 +737,17 @@ const en: TranslationKeys = {
   'general.all': 'All',
   'general.add': 'Add',
   'general.added': 'Added',
+  'general.portion': 'Serving',
+  'general.portions': 'Servings',
+  'general.searchIngredient': 'Search ingredient...',
+  'general.amount': 'Amount',
+  'general.copied': 'Copied!',
+  'general.notFound': 'Not found',
+  'general.manualEntry': 'Enter manually',
+  'general.results': 'Results',
+  'general.per100g': 'per 100g',
+  'general.lightMode': 'Light Mode',
+  'general.darkMode': 'Dark Mode',
 
   'unit.g': 'g',
   'unit.ml': 'ml',
@@ -473,304 +764,6 @@ const en: TranslationKeys = {
   'unit.l': 'l',
 };
 
-const es: TranslationKeys = {
-  'nav.dashboard': 'Panel',
-  'nav.recipes': 'Recetas',
-  'nav.mealPlanner': 'Planificador',
-  'nav.shoppingList': 'Lista de compras',
-  'nav.profile': 'Perfil',
-  'nav.logout': 'Cerrar sesión',
-
-  'auth.login': 'Iniciar sesión',
-  'auth.register': 'Registrarse',
-  'auth.username': 'Usuario',
-  'auth.email': 'Correo electrónico',
-  'auth.password': 'Contraseña',
-  'auth.confirmPassword': 'Confirmar contraseña',
-  'auth.loginTitle': 'Bienvenido de nuevo',
-  'auth.registerTitle': 'Crear cuenta',
-  'auth.noAccount': '¿No tienes cuenta?',
-  'auth.hasAccount': '¿Ya tienes cuenta?',
-  'auth.welcomeBack': '¡Qué bueno verte de nuevo! 👋',
-  'auth.createAccount': 'Comienza tu viaje de meal prep 🚀',
-
-  'dashboard.welcome': 'Bienvenido de nuevo',
-  'dashboard.todaysPlan': 'Plan de hoy',
-  'dashboard.quickStats': 'Estadísticas rápidas',
-  'dashboard.totalRecipes': 'Total de recetas',
-  'dashboard.mealPlans': 'Planes de comida',
-  'dashboard.avgCalories': 'Calorías promedio',
-  'dashboard.recentRecipes': 'Recetas recientes',
-  'dashboard.recommendations': 'Recomendados para ti',
-  'dashboard.basedOnYour': 'Basado en tus recetas existentes',
-
-  'recipes.title': 'Mis Recetas',
-  'recipes.addRecipe': 'Añadir receta',
-  'recipes.editRecipe': 'Editar receta',
-  'recipes.searchPlaceholder': 'Buscar recetas...',
-  'recipes.allCategories': 'Todas las categorías',
-  'recipes.allTypes': 'Todos los tipos',
-  'recipes.noRecipes': 'Sin recetas aún. ¡Crea la primera!',
-  'recipes.name': 'Nombre',
-  'recipes.description': 'Descripción',
-  'recipes.instructions': 'Instrucciones',
-  'recipes.instructionsPlaceholder': 'Instrucciones paso a paso...',
-  'recipes.category': 'Categoría',
-  'recipes.mealType': 'Tipo de comida',
-  'recipes.servings': 'Porciones',
-  'recipes.calories': 'Calorías',
-  'recipes.protein': 'Proteína',
-  'recipes.fat': 'Grasa',
-  'recipes.carbs': 'Carbohidratos',
-  'recipes.ingredients': 'Ingredientes',
-  'recipes.addIngredient': 'Añadir ingrediente',
-  'recipes.save': 'Guardar',
-  'recipes.cancel': 'Cancelar',
-  'recipes.delete': 'Eliminar',
-  'recipes.edit': 'Editar',
-  'recipes.uploadImage': 'Subir imagen/archivo',
-  'recipes.importFromApi': 'Importar receta',
-  'recipes.perServing': 'por porción',
-  'recipes.discover': 'Descubrir recetas',
-  'recipes.showDetails': 'Mostrar detalles',
-  'recipes.showLess': 'Mostrar menos',
-  'recipes.preparation': 'Preparación',
-
-  'macroFilter.title': 'Filtro de macros',
-  'macroFilter.minProtein': 'Proteína mín.',
-  'macroFilter.maxProtein': 'Proteína máx.',
-  'macroFilter.minCalories': 'Calorías mín.',
-  'macroFilter.maxCalories': 'Calorías máx.',
-  'macroFilter.macros': 'Macros',
-  'macroFilter.reset': 'Restablecer filtros',
-
-  'mealPlanner.title': 'Planificador de comidas',
-  'mealPlanner.generate': 'Generar plan',
-  'mealPlanner.macroGoals': 'Objetivos macro',
-  'mealPlanner.dateRange': 'Rango de fechas',
-  'mealPlanner.history': 'Historial',
-  'mealPlanner.noPlan': 'Sin plan disponible',
-  'mealPlanner.breakfast': 'Desayuno',
-  'mealPlanner.lunch': 'Almuerzo',
-  'mealPlanner.dinner': 'Cena',
-  'mealPlanner.snack': 'Snack',
-  'mealPlanner.dayView': 'Vista diaria',
-  'mealPlanner.weekView': 'Vista semanal',
-  'mealPlanner.thisWeek': 'Esta semana',
-  'mealPlanner.noPlanForDay': 'Sin plan para este día',
-  'mealPlanner.generateForDay': 'Generar plan',
-  'mealPlanner.weekSummary': 'Resumen semanal',
-  'mealPlanner.planSubtitle': 'Planifica tus comidas de la semana',
-
-  'shoppingList.title': 'Lista de compras',
-  'shoppingList.export': 'Exportar',
-  'shoppingList.exportPDF': 'Exportar como PDF',
-  'shoppingList.exportCSV': 'Exportar como CSV',
-  'shoppingList.progress': 'Progreso',
-  'shoppingList.allDone': '¡Todo listo! 🎉',
-  'shoppingList.empty': 'Sin artículos',
-
-  'profile.title': 'Mi Perfil',
-  'profile.settings': 'Configuración',
-  'profile.language': 'Idioma',
-  'profile.theme': 'Apariencia',
-  'profile.themeDark': 'Oscuro',
-  'profile.themeLight': 'Claro',
-  'profile.themeSystem': 'Sistema',
-  'profile.account': 'Cuenta',
-  'profile.memberSince': 'Miembro desde',
-  'profile.recipesCreated': 'Recetas creadas',
-  'profile.plansGenerated': 'Planes generados',
-  'profile.changePassword': 'Cambiar contraseña',
-
-  'premium.title': 'MacroMate Premium',
-  'premium.comingSoon': 'Próximamente',
-  'premium.subtitle': 'Desbloquea todas las funciones y alcanza tus metas más rápido',
-  'premium.upgrade': 'Más información',
-
-  'confirm.delete': 'Confirmar eliminación',
-  'confirm.deleteMessage': '¿Estás seguro? Esto no se puede deshacer.',
-  'confirm.yes': 'Sí, eliminar',
-  'confirm.no': 'No',
-  'confirm.cancel': 'Cancelar',
-
-  'general.loading': 'Cargando...',
-  'general.error': 'Error',
-  'general.success': 'Éxito',
-  'general.save': 'Guardar',
-  'general.close': 'Cerrar',
-  'general.search': 'Buscar',
-  'general.filter': 'Filtrar',
-  'general.from': 'Desde',
-  'general.to': 'Hasta',
-  'general.all': 'Todos',
-  'general.add': 'Añadir',
-  'general.added': 'Añadido',
-
-  'unit.g': 'g',
-  'unit.ml': 'ml',
-  'unit.stk': 'uds',
-  'unit.el': 'cda',
-  'unit.tl': 'cdta',
-  'unit.prise': 'pizca',
-  'unit.scheibe': 'rebanada(s)',
-  'unit.tasse': 'taza(s)',
-  'unit.bund': 'manojo',
-  'unit.dose': 'lata(s)',
-  'unit.pkg': 'paquete(s)',
-  'unit.kg': 'kg',
-  'unit.l': 'l',
-};
-
-const fr: TranslationKeys = {
-  'nav.dashboard': 'Tableau de bord',
-  'nav.recipes': 'Recettes',
-  'nav.mealPlanner': 'Planificateur',
-  'nav.shoppingList': 'Liste de courses',
-  'nav.profile': 'Profil',
-  'nav.logout': 'Déconnexion',
-
-  'auth.login': 'Connexion',
-  'auth.register': "S'inscrire",
-  'auth.username': "Nom d'utilisateur",
-  'auth.email': 'E-mail',
-  'auth.password': 'Mot de passe',
-  'auth.confirmPassword': 'Confirmer le mot de passe',
-  'auth.loginTitle': 'Bienvenue',
-  'auth.registerTitle': 'Créer un compte',
-  'auth.noAccount': "Pas encore de compte ?",
-  'auth.hasAccount': 'Déjà un compte ?',
-  'auth.welcomeBack': 'Content de te revoir ! 👋',
-  'auth.createAccount': 'Lance ton parcours meal prep 🚀',
-
-  'dashboard.welcome': 'Bienvenue',
-  'dashboard.todaysPlan': "Plan d'aujourd'hui",
-  'dashboard.quickStats': 'Aperçu rapide',
-  'dashboard.totalRecipes': 'Total recettes',
-  'dashboard.mealPlans': 'Plans repas',
-  'dashboard.avgCalories': 'Calories moy.',
-  'dashboard.recentRecipes': 'Recettes récentes',
-  'dashboard.recommendations': 'Recommandé pour vous',
-  'dashboard.basedOnYour': 'Basé sur vos recettes existantes',
-
-  'recipes.title': 'Mes Recettes',
-  'recipes.addRecipe': 'Ajouter une recette',
-  'recipes.editRecipe': 'Modifier la recette',
-  'recipes.searchPlaceholder': 'Rechercher des recettes...',
-  'recipes.allCategories': 'Toutes les catégories',
-  'recipes.allTypes': 'Tous les types',
-  'recipes.noRecipes': 'Pas encore de recettes. Créez la première !',
-  'recipes.name': 'Nom',
-  'recipes.description': 'Description',
-  'recipes.instructions': 'Instructions',
-  'recipes.instructionsPlaceholder': 'Instructions étape par étape...',
-  'recipes.category': 'Catégorie',
-  'recipes.mealType': 'Type de repas',
-  'recipes.servings': 'Portions',
-  'recipes.calories': 'Calories',
-  'recipes.protein': 'Protéines',
-  'recipes.fat': 'Lipides',
-  'recipes.carbs': 'Glucides',
-  'recipes.ingredients': 'Ingrédients',
-  'recipes.addIngredient': 'Ajouter un ingrédient',
-  'recipes.save': 'Enregistrer',
-  'recipes.cancel': 'Annuler',
-  'recipes.delete': 'Supprimer',
-  'recipes.edit': 'Modifier',
-  'recipes.uploadImage': 'Importer image/fichier',
-  'recipes.importFromApi': 'Importer une recette',
-  'recipes.perServing': 'par portion',
-  'recipes.discover': 'Découvrir des recettes',
-  'recipes.showDetails': 'Afficher les détails',
-  'recipes.showLess': 'Afficher moins',
-  'recipes.preparation': 'Préparation',
-
-  'macroFilter.title': 'Filtre macros',
-  'macroFilter.minProtein': 'Protéines min.',
-  'macroFilter.maxProtein': 'Protéines max.',
-  'macroFilter.minCalories': 'Calories min.',
-  'macroFilter.maxCalories': 'Calories max.',
-  'macroFilter.macros': 'Macros',
-  'macroFilter.reset': 'Réinitialiser les filtres',
-
-  'mealPlanner.title': 'Planificateur de repas',
-  'mealPlanner.generate': 'Générer un plan',
-  'mealPlanner.macroGoals': 'Objectifs macros',
-  'mealPlanner.dateRange': 'Période',
-  'mealPlanner.history': 'Historique',
-  'mealPlanner.noPlan': 'Aucun plan disponible',
-  'mealPlanner.breakfast': 'Petit-déjeuner',
-  'mealPlanner.lunch': 'Déjeuner',
-  'mealPlanner.dinner': 'Dîner',
-  'mealPlanner.snack': 'Collation',
-  'mealPlanner.dayView': 'Vue journalière',
-  'mealPlanner.weekView': 'Vue hebdomadaire',
-  'mealPlanner.thisWeek': 'Cette semaine',
-  'mealPlanner.noPlanForDay': 'Aucun plan pour ce jour',
-  'mealPlanner.generateForDay': 'Générer un plan',
-  'mealPlanner.weekSummary': 'Résumé de la semaine',
-  'mealPlanner.planSubtitle': 'Planifiez vos repas pour la semaine',
-
-  'shoppingList.title': 'Liste de courses',
-  'shoppingList.export': 'Exporter',
-  'shoppingList.exportPDF': 'Exporter en PDF',
-  'shoppingList.exportCSV': 'Exporter en CSV',
-  'shoppingList.progress': 'Progression',
-  'shoppingList.allDone': 'Tout est fait ! 🎉',
-  'shoppingList.empty': 'Aucun article',
-
-  'profile.title': 'Mon Profil',
-  'profile.settings': 'Paramètres',
-  'profile.language': 'Langue',
-  'profile.theme': 'Apparence',
-  'profile.themeDark': 'Sombre',
-  'profile.themeLight': 'Clair',
-  'profile.themeSystem': 'Système',
-  'profile.account': 'Compte',
-  'profile.memberSince': 'Membre depuis',
-  'profile.recipesCreated': 'Recettes créées',
-  'profile.plansGenerated': 'Plans générés',
-  'profile.changePassword': 'Changer le mot de passe',
-
-  'premium.title': 'MacroMate Premium',
-  'premium.comingSoon': 'Bientôt disponible',
-  'premium.subtitle': 'Débloquez toutes les fonctionnalités et atteignez vos objectifs plus vite',
-  'premium.upgrade': 'En savoir plus',
-
-  'confirm.delete': 'Confirmer la suppression',
-  'confirm.deleteMessage': 'Êtes-vous sûr ? Cette action est irréversible.',
-  'confirm.yes': 'Oui, supprimer',
-  'confirm.no': 'Non',
-  'confirm.cancel': 'Annuler',
-
-  'general.loading': 'Chargement...',
-  'general.error': 'Erreur',
-  'general.success': 'Succès',
-  'general.save': 'Enregistrer',
-  'general.close': 'Fermer',
-  'general.search': 'Rechercher',
-  'general.filter': 'Filtrer',
-  'general.from': 'De',
-  'general.to': 'À',
-  'general.all': 'Tous',
-  'general.add': 'Ajouter',
-  'general.added': 'Ajouté',
-
-  'unit.g': 'g',
-  'unit.ml': 'ml',
-  'unit.stk': 'pce',
-  'unit.el': 'c.à.s.',
-  'unit.tl': 'c.à.c.',
-  'unit.prise': 'pincée',
-  'unit.scheibe': 'tranche(s)',
-  'unit.tasse': 'tasse(s)',
-  'unit.bund': 'botte',
-  'unit.dose': 'boîte(s)',
-  'unit.pkg': 'paquet(s)',
-  'unit.kg': 'kg',
-  'unit.l': 'l',
-};
-
-const translations: Record<Locale, TranslationKeys> = { de, en, es, fr };
+const translations: Record<Locale, TranslationKeys> = { de, en };
 
 export default translations;

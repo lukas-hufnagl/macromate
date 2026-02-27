@@ -22,6 +22,9 @@ class MealPlan(Base):
     target_fat = Column(Float, default=65)
     target_carbs = Column(Float, default=250)
 
+    # ── Sharing ──
+    share_token = Column(String(32), unique=True, nullable=True, index=True)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # ── Beziehungen ──

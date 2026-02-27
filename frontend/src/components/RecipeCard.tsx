@@ -5,7 +5,9 @@
 
 import { useState } from 'react';
 import type { Recipe } from '../types';
-import { Flame, Beef, Droplets, Wheat, Pencil, Trash2, ChevronDown, ChevronUp, BookOpen } from 'lucide-react';
+import { Flame, Beef, Droplets, Wheat, Pencil, Trash2, ChevronDown, ChevronUp, BookOpen, Heart } from 'lucide-react';
+import { useSubscriptionStore } from '../stores/subscriptionStore';
+import { useI18nStore } from '../stores/i18nStore';
 import clsx from 'clsx';
 
 interface Props {
@@ -30,26 +32,30 @@ const CATEGORY_EMOJI: Record<string, string> = {
 };
 
 // Auto-computed dietary labels
-function getDietaryLabels(recipe: Recipe): { label: string; color: string }[] {
+function getDietaryLabels(recipe: Recipe, t: (k: string) => string): { label: string; color: string }[] {
   const labels: { label: string; color: string }[] = [];
-  if (recipe.protein >= 30) labels.push({ label: 'High Protein', color: 'bg-blue-500/15 text-blue-600 dark:text-blue-400' });
-  if (recipe.calories <= 300) labels.push({ label: 'Low Calorie', color: 'bg-green-500/15 text-green-600 dark:text-green-400' });
-  if (recipe.carbs <= 20) labels.push({ label: 'Low Carb', color: 'bg-orange-500/15 text-orange-600 dark:text-orange-400' });
-  if (recipe.fat <= 8) labels.push({ label: 'Low Fat', color: 'bg-teal-500/15 text-teal-600 dark:text-teal-400' });
-  if (recipe.protein >= 20 && recipe.calories <= 400) labels.push({ label: 'Fitness', color: 'bg-purple-500/15 text-purple-600 dark:text-purple-400' });
+  const proteinCalPct = recipe.calories > 0 ? (recipe.protein * 4 / recipe.calories) * 100 : 0;
+  if (proteinCalPct >= 30) labels.push({ label: `🏋️ ${t('recipes.highProtein')}`, color: 'bg-blue-500/15 text-blue-600 dark:text-blue-400' });
+  if (recipe.calories > 0 && recipe.calories <= 350) labels.push({ label: `🔥 ${t('recipes.lowCalorie')}`, color: 'bg-green-500/15 text-green-600 dark:text-green-400' });
+  if (recipe.carbs <= 15) labels.push({ label: `🥗 ${t('recipes.lowCarb')}`, color: 'bg-orange-500/15 text-orange-600 dark:text-orange-400' });
+  if (recipe.fat > 0 && recipe.fat <= 5) labels.push({ label: `💧 ${t('recipes.lowFat')}`, color: 'bg-teal-500/15 text-teal-600 dark:text-teal-400' });
+  if (proteinCalPct >= 25 && recipe.calories <= 500) labels.push({ label: `⚡ ${t('recipes.fitness')}`, color: 'bg-purple-500/15 text-purple-600 dark:text-purple-400' });
   return labels;
 }
 
 export default function RecipeCard({ recipe, onEdit, onDelete, compact }: Props) {
   const [expanded, setExpanded] = useState(false);
-  const dietaryLabels = getDietaryLabels(recipe);
+  const { isFavorite, toggleFavorite } = useSubscriptionStore();
+  const t = useI18nStore((s) => s.t);
+  const dietaryLabels = getDietaryLabels(recipe, t);
+  const isFav = isFavorite(recipe.id);
 
   return (
-    <div className="glass-card-hover group relative overflow-hidden">
+    <div className="glass-card-hover group relative overflow-hidden h-full flex flex-col">
       {/* Top Gradient Bar */}
       <div className="h-1 bg-gradient-to-r from-accent-500 via-accent-400 to-accent-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-      <div className={clsx('p-5', compact && 'p-4')}>
+      <div className={clsx('p-5 flex-1 flex flex-col', compact && 'p-4')}>
         {/* Header */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex-1 min-w-0">
@@ -64,14 +70,27 @@ export default function RecipeCard({ recipe, onEdit, onDelete, compact }: Props)
           </div>
 
           {/* Actions */}
-          <div className="flex gap-1">
+          <div className="flex gap-1 items-center">
+            {/* Favorite heart */}
+            <button
+              onClick={(e) => { e.stopPropagation(); toggleFavorite(recipe.id); }}
+              className={clsx(
+                'p-2 rounded-lg transition-all duration-200',
+                isFav
+                  ? 'text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 scale-100'
+                  : 'text-gray-300 dark:text-dark-600 hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/10 sm:opacity-0 sm:group-hover:opacity-100',
+              )}
+              title={isFav ? t('recipes.removeFav') : t('recipes.addFav')}
+            >
+              <Heart size={16} className={clsx('transition-all duration-200', isFav && 'fill-rose-500 stroke-rose-500')} />
+            </button>
             {(onEdit || onDelete) && (
-              <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                 {onEdit && (
                   <button
                     onClick={() => onEdit(recipe)}
                     className="p-2 rounded-lg text-gray-400 dark:text-dark-400 hover:text-accent-400 hover:bg-accent-500/10 transition-all"
-                    title="Bearbeiten"
+                    title={t('recipes.edit')}
                   >
                     <Pencil size={16} />
                   </button>
@@ -80,7 +99,7 @@ export default function RecipeCard({ recipe, onEdit, onDelete, compact }: Props)
                   <button
                     onClick={() => onDelete(recipe)}
                     className="p-2 rounded-lg text-gray-400 dark:text-dark-400 hover:text-red-400 hover:bg-red-500/10 transition-all"
-                    title="Löschen"
+                    title={t('recipes.delete')}
                   >
                     <Trash2 size={16} />
                   </button>
@@ -100,7 +119,7 @@ export default function RecipeCard({ recipe, onEdit, onDelete, compact }: Props)
           </span>
           {recipe.servings > 1 && (
             <span className="text-xs text-gray-400 dark:text-dark-500">
-              {recipe.servings} Portionen
+              {recipe.servings} {t('general.portions')}
             </span>
           )}
         </div>
@@ -117,31 +136,31 @@ export default function RecipeCard({ recipe, onEdit, onDelete, compact }: Props)
         )}
 
         {/* Macro Pills */}
-        <div className="grid grid-cols-4 gap-2">
+        <div className="grid grid-cols-4 gap-2 mt-auto">
           <MacroPill
             icon={<Flame size={14} />}
-            label="Kalorien"
+            label={t('recipes.calories')}
             value={recipe.calories}
             unit="kcal"
             color="text-fire-400"
           />
           <MacroPill
             icon={<Beef size={14} />}
-            label="Protein"
+            label={t('recipes.protein')}
             value={recipe.protein}
             unit="g"
             color="text-blue-400"
           />
           <MacroPill
             icon={<Droplets size={14} />}
-            label="Fett"
+            label={t('recipes.fat')}
             value={recipe.fat}
             unit="g"
             color="text-yellow-400"
           />
           <MacroPill
             icon={<Wheat size={14} />}
-            label="Carbs"
+            label={t('recipes.carbs')}
             value={recipe.carbs}
             unit="g"
             color="text-purple-400"
@@ -155,7 +174,7 @@ export default function RecipeCard({ recipe, onEdit, onDelete, compact }: Props)
             className="mt-3 w-full flex items-center justify-center gap-1 text-xs text-gray-400 dark:text-dark-500 hover:text-accent-400 dark:hover:text-accent-400 transition-colors py-1"
           >
             {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            {expanded ? 'Weniger' : 'Details anzeigen'}
+            {expanded ? t('recipes.showLess') : t('recipes.showDetails')}
           </button>
         )}
 
@@ -165,7 +184,7 @@ export default function RecipeCard({ recipe, onEdit, onDelete, compact }: Props)
             {/* Ingredients */}
             {recipe.ingredients?.length > 0 && (
               <div>
-                <p className="text-xs font-semibold text-gray-500 dark:text-dark-400 uppercase tracking-wider mb-1.5">Zutaten</p>
+                <p className="text-xs font-semibold text-gray-500 dark:text-dark-400 uppercase tracking-wider mb-1.5">{t('recipes.ingredients')}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {recipe.ingredients.map((ing, i) => (
                     <span key={i} className="text-xs px-2 py-1 rounded-lg bg-gray-100 dark:bg-dark-800/40 text-gray-600 dark:text-dark-300">
@@ -180,7 +199,7 @@ export default function RecipeCard({ recipe, onEdit, onDelete, compact }: Props)
             {recipe.instructions && (
               <div>
                 <p className="text-xs font-semibold text-gray-500 dark:text-dark-400 uppercase tracking-wider mb-1.5 flex items-center gap-1">
-                  <BookOpen size={12} /> Zubereitung
+                  <BookOpen size={12} /> {t('recipes.preparation')}
                 </p>
                 <p className="text-sm text-gray-600 dark:text-dark-300 whitespace-pre-line leading-relaxed">
                   {recipe.instructions}

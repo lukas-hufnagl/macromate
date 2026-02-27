@@ -13,9 +13,34 @@ from app.models.user import User
 from app.models.recipe import Recipe
 from app.models.ingredient import Ingredient
 from app.schemas.recipe import RecipeCreate, RecipeUpdate, RecipeResponse
-from app.services.nutrition_calculator import calculate_nutrition
+from app.services.builtin_recipes import get_builtin_recipes
 
 router = APIRouter(prefix="/api/recipes", tags=["Recipes"])
+
+
+@router.get("/discover")
+def discover_recipes(
+    category: str | None = Query(None),
+    meal_type: str | None = Query(None),
+    current_user: User = Depends(get_current_user),
+):
+    """Vordefinierte Rezepte zum Entdecken – gefiltert nach Allergien und Ernährung."""
+    recipes = get_builtin_recipes()
+    # Filter by user's allergies & diet
+    user_allergies = current_user.allergies or []
+    user_diet = current_user.diet_type
+
+    from app.services.builtin_recipes import get_builtin_recipes_for_generation
+    filtered = get_builtin_recipes_for_generation(
+        categories=[category] if category else None,
+        diet_type=user_diet if user_diet and user_diet != "keine" else None,
+        allergies=user_allergies,
+    )
+
+    if meal_type:
+        filtered = [r for r in filtered if r["meal_type"] == meal_type]
+
+    return filtered
 
 
 @router.get("/", response_model=list[RecipeResponse])
@@ -85,39 +110,8 @@ def get_recipe(
     return recipe
 
 
-# ── Nutrition Calculation ──
-
-class NutritionRequest(BaseModel):
-    ingredients: list[dict]
-    servings: int = 1
-
-class NutritionResponse(BaseModel):
-    calories: float
-    protein: float
-    fat: float
-    carbs: float
-
-
-@router.post("/calculate-nutrition", response_model=NutritionResponse)
-async def calc_nutrition(
-    data: NutritionRequest,
-    current_user: User = Depends(get_current_user),
-):
-    """
-    Berechnet Nährwerte pro Portion anhand der Zutatenliste (via Gemini AI).
-    """
-    valid = [i for i in data.ingredients if i.get("name", "").strip()]
-    if not valid:
-        raise HTTPException(status_code=400, detail="Mindestens eine Zutat mit Namen angeben")
-    try:
-        result = await calculate_nutrition(valid, data.servings)
-        return result
-    except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Nährwertberechnung fehlgeschlagen: {e}")
-
-
 @router.post("/", response_model=RecipeResponse, status_code=status.HTTP_201_CREATED)
-async def create_recipe(
+def create_recipe(
     data: RecipeCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
@@ -125,22 +119,7 @@ async def create_recipe(
     """
     Neues Rezept erstellen.
     Enthält Basisinfos, Nährwerte und optionale Zutatenliste.
-    Wenn Nährwerte alle 0 sind und Zutaten vorhanden, werden sie automatisch berechnet.
     """
-    # Auto-calculate macros if all are 0 and ingredients exist
-    macros_all_zero = (data.calories == 0 and data.protein == 0 and data.fat == 0 and data.carbs == 0)
-    if macros_all_zero and data.ingredients:
-        try:
-            ings = [i.model_dump() for i in data.ingredients if i.name.strip()]
-            if ings:
-                nutrition = await calculate_nutrition(ings, data.servings)
-                data.calories = nutrition["calories"]
-                data.protein = nutrition["protein"]
-                data.fat = nutrition["fat"]
-                data.carbs = nutrition["carbs"]
-        except Exception:
-            pass  # Fallback: Nährwerte bleiben 0
-
     recipe = Recipe(
         user_id=current_user.id,
         name=data.name,

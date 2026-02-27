@@ -27,9 +27,9 @@ export default function NutritionSummary({ actual, target, compact }: Props) {
       actual: actual.calories,
       target: target.calories,
       unit: 'kcal',
-      color: 'from-orange-500 to-fire-400',
-      textColor: 'text-fire-400',
-      bgColor: 'bg-fire-400/10',
+      color: 'from-accent-500 to-accent-400',
+      textColor: 'text-accent-400',
+      bgColor: 'bg-accent-400/10',
     },
     {
       label: 'Protein',

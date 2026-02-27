@@ -1,0 +1,24 @@
+# ╔══════════════════════════════════════════════════════════════╗
+# ║  MacroMate – Docker Compose Production Override             ║
+# ║  docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# ╚══════════════════════════════════════════════════════════════╝
+
+services:
+  db:
+    environment:
+      POSTGRES_DB: macromate
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD}
+    ports: []  # No exposed port in production
+
+  backend:
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql://macromate:${POSTGRES_PASSWORD}@db:5432/macromate
+      SECRET_KEY: ${SECRET_KEY:?Set SECRET_KEY}
+      CORS_ORIGINS: '["${FRONTEND_URL:?Set FRONTEND_URL}"]'
+    ports: []  # Only accessible via nginx
+
+  frontend:
+    ports:
+      - "443:443"
+      - "80:80"

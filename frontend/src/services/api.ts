@@ -18,6 +18,11 @@ import type {
   User,
   MacroFilter,
   IngredientSuggestion,
+  SubscriptionStatus,
+  Subscription,
+  ProfileData,
+  TDEEResult,
+  Household,
 } from '../types';
 
 // ── Axios Instance ──
@@ -108,13 +113,14 @@ export const recipesAPI = {
     await api.delete(`/recipes/${id}`);
   },
 
-  calculateNutrition: async (ingredients: { name: string; quantity: number; unit: string }[], servings: number = 1): Promise<{ calories: number; protein: number; fat: number; carbs: number }> => {
-    const res = await api.post<{ calories: number; protein: number; fat: number; carbs: number }>('/recipes/calculate-nutrition', {
-      ingredients,
-      servings,
-    });
+  discover: async (category?: string, mealType?: string): Promise<any[]> => {
+    const params: Record<string, string> = {};
+    if (category) params.category = category;
+    if (mealType) params.meal_type = mealType;
+    const res = await api.get('/recipes/discover', { params });
     return res.data;
   },
+
 };
 
 // ── Ingredients Search API ──
@@ -125,25 +131,6 @@ export const ingredientsAPI = {
       params: { q: query, lang, limit },
     });
     return res.data.results;
-  },
-};
-
-// ── Image Recognition API ──
-
-export const recognitionAPI = {
-  recognizeImage: async (file: File): Promise<RecipeCreate & { confidence?: number }> => {
-    const formData = new FormData();
-    formData.append('file', file);
-    const res = await api.post('/recognize/image', formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-      timeout: 30000,
-    });
-    return res.data;
-  },
-
-  getStatus: async (): Promise<{ available: boolean; provider: string | null }> => {
-    const res = await api.get('/recognize/status');
-    return res.data;
   },
 };
 
@@ -181,6 +168,117 @@ export const mealPlanAPI = {
     });
     return res.data;
   },
+
+  share: async (planId: number): Promise<string> => {
+    const res = await api.post<{ share_token: string }>(`/mealplans/${planId}/share`);
+    return res.data.share_token;
+  },
+
+  unshare: async (planId: number): Promise<void> => {
+    await api.delete(`/mealplans/${planId}/share`);
+  },
+
+  getShared: async (shareToken: string): Promise<MealPlan> => {
+    const res = await api.get<MealPlan>(`/mealplans/shared/${shareToken}`);
+    return res.data;
+  },
 };
 
 export default api;
+
+// ── Subscription API ──
+
+export const subscriptionAPI = {
+  getStatus: async (): Promise<SubscriptionStatus> => {
+    const res = await api.get<SubscriptionStatus>('/subscriptions/status');
+    return res.data;
+  },
+
+  getSubscription: async (): Promise<Subscription | null> => {
+    const res = await api.get<Subscription | null>('/subscriptions/');
+    return res.data;
+  },
+
+  getCheckoutUrl: async (variantId: string): Promise<string> => {
+    const res = await api.post<{ checkout_url: string }>(`/subscriptions/checkout-url?variant_id=${variantId}`);
+    return res.data.checkout_url;
+  },
+};
+
+// ── Favorites API ──
+
+export const favoritesAPI = {
+  getAll: async (): Promise<number[]> => {
+    const res = await api.get<{ favorites: number[] }>('/favorites/');
+    return res.data.favorites;
+  },
+
+  add: async (recipeId: number): Promise<void> => {
+    await api.post(`/favorites/${recipeId}`);
+  },
+
+  remove: async (recipeId: number): Promise<void> => {
+    await api.delete(`/favorites/${recipeId}`);
+  },
+};
+
+// ── Profile API ──
+
+export const profileAPI = {
+  get: async (): Promise<ProfileData> => {
+    const res = await api.get<ProfileData>('/profile');
+    return res.data;
+  },
+
+  update: async (data: Partial<ProfileData>): Promise<ProfileData> => {
+    const res = await api.put<ProfileData>('/profile', data);
+    return res.data;
+  },
+
+  getTDEE: async (): Promise<TDEEResult> => {
+    const res = await api.get<TDEEResult>('/profile/tdee');
+    return res.data;
+  },
+
+  previewTDEE: async (data: Partial<ProfileData>): Promise<TDEEResult> => {
+    const res = await api.post<TDEEResult>('/profile/tdee/preview', data);
+    return res.data;
+  },
+};
+
+// ── Household API ──
+
+export const householdAPI = {
+  create: async (name: string): Promise<Household> => {
+    const res = await api.post<Household>('/households', { name });
+    return res.data;
+  },
+
+  getMine: async (): Promise<Household | null> => {
+    const res = await api.get<Household | null>('/households/mine');
+    return res.data;
+  },
+
+  join: async (inviteCode: string): Promise<Household> => {
+    const res = await api.post<Household>('/households/join', { invite_code: inviteCode });
+    return res.data;
+  },
+
+  leave: async (): Promise<void> => {
+    await api.post('/households/leave');
+  },
+
+  regenerateCode: async (): Promise<Household> => {
+    const res = await api.post<Household>('/households/regenerate-code');
+    return res.data;
+  },
+
+  removeMember: async (userId: number): Promise<void> => {
+    await api.delete(`/households/remove-member/${userId}`);
+  },
+
+  getMealPlans: async (householdId: number) => {
+    const res = await api.get(`/households/${householdId}/mealplans`);
+    return res.data;
+  },
+};

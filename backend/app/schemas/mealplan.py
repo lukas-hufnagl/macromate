@@ -56,6 +56,7 @@ class MealPlanResponse(BaseModel):
     actual_protein: float = 0
     actual_fat: float = 0
     actual_carbs: float = 0
+    share_token: str | None = None
     created_at: datetime | None = None
 
     model_config = {"from_attributes": True}

@@ -24,8 +24,11 @@ from app.models.user import User  # noqa: F401
 from app.models.recipe import Recipe  # noqa: F401
 from app.models.ingredient import Ingredient  # noqa: F401
 from app.models.mealplan import MealPlan, MealPlanEntry  # noqa: F401
+from app.models.subscription import Subscription  # noqa: F401
+from app.models.favorite import Favorite  # noqa: F401
+from app.models.household import Household  # noqa: F401
 # ── Router importieren ──
-from app.routers import auth, recipes, mealplans, image_recognition, ingredients
+from app.routers import auth, recipes, mealplans, ingredients, subscriptions, favorites, profile, households
 
 # ── Logging ──
 logging.basicConfig(
@@ -142,8 +145,11 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.include_router(auth.router)
 app.include_router(recipes.router)
 app.include_router(mealplans.router)
-app.include_router(image_recognition.router)
 app.include_router(ingredients.router)
+app.include_router(subscriptions.router)
+app.include_router(favorites.router)
+app.include_router(profile.router)
+app.include_router(households.router)
 
 
 @app.get("/api/health")

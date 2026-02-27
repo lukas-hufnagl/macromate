@@ -1,11 +1,10 @@
 /**
- * MacroMate – IngredientAutocomplete Component (v2)
- * Premium typeahead search with nutrition preview, quantity suggestions.
- * Uses USDA + Gemini fallback. Keyboard navigable, mobile-friendly.
+ * MacroMate – IngredientAutocomplete Component
+ * Typeahead search with nutrition preview. Keyboard navigable, mobile-friendly.
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Search, Sparkles, Database, Loader2 } from 'lucide-react';
+import { Search, Database, Loader2, PenLine } from 'lucide-react';
 import { ingredientsAPI } from '../services/api';
 import { useI18nStore } from '../stores/i18nStore';
 import type { IngredientSuggestion } from '../types';
@@ -29,6 +28,7 @@ export default function IngredientAutocomplete({
   compact,
 }: Props) {
   const locale = useI18nStore((s) => s.locale);
+  const t = useI18nStore((s) => s.t);
   const [suggestions, setSuggestions] = useState<IngredientSuggestion[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -54,15 +54,16 @@ export default function IngredientAutocomplete({
         try {
           const results = await ingredientsAPI.search(query, locale);
           setSuggestions(results);
-          setIsOpen(results.length > 0);
+          setIsOpen(true);
           setHighlightIndex(-1);
         } catch (err) {
           console.error('Ingredient search error:', err);
           setSuggestions([]);
+          setIsOpen(true); // still open so "not found" shows
         } finally {
           setIsLoading(false);
         }
-      }, 400);
+      }, 250);
     },
     [locale],
   );
@@ -150,7 +151,7 @@ export default function IngredientAutocomplete({
             compact && 'py-2 px-3',
             className,
           )}
-          placeholder={placeholder || 'Zutat suchen...'}
+          placeholder={placeholder || t('general.searchIngredient')}
           value={value}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
@@ -169,7 +170,7 @@ export default function IngredientAutocomplete({
       </div>
 
       {/* Dropdown */}
-      {isOpen && suggestions.length > 0 && (
+      {isOpen && (
         <div
           ref={dropdownRef}
           className="absolute z-[60] top-full left-0 right-0 mt-1.5 max-h-72 overflow-y-auto
@@ -179,14 +180,16 @@ export default function IngredientAutocomplete({
                      ring-1 ring-black/5 dark:ring-white/5
                      animate-fade-in backdrop-blur-sm"
         >
-          {/* Header */}
-          <div className="sticky top-0 px-3 py-2 bg-gray-50/90 dark:bg-dark-900/90 backdrop-blur-sm border-b border-gray-100 dark:border-dark-800/50">
-            <p className="text-[10px] font-medium text-gray-400 dark:text-dark-500 uppercase tracking-wider">
-              {suggestions.length} Ergebnis{suggestions.length !== 1 ? 'se' : ''} — pro 100g
-            </p>
-          </div>
+          {suggestions.length > 0 ? (
+            <>
+              {/* Header */}
+              <div className="sticky top-0 px-3 py-2 bg-gray-50/90 dark:bg-dark-900/90 backdrop-blur-sm border-b border-gray-100 dark:border-dark-800/50">
+                <p className="text-[10px] font-medium text-gray-400 dark:text-dark-500 uppercase tracking-wider">
+                  {suggestions.length} {t('general.results')} — {t('general.per100g')}
+                </p>
+              </div>
 
-          {suggestions.map((s, i) => (
+              {suggestions.map((s, i) => (
             <button
               key={`${s.name}-${i}`}
               type="button"
@@ -202,18 +205,9 @@ export default function IngredientAutocomplete({
             >
               {/* Icon */}
               <div
-                className={clsx(
-                  'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5',
-                  s.source === 'gemini'
-                    ? 'bg-purple-100 dark:bg-purple-500/15'
-                    : 'bg-accent-100 dark:bg-accent-500/15',
-                )}
+                className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5 bg-accent-100 dark:bg-accent-500/15"
               >
-                {s.source === 'gemini' ? (
-                  <Sparkles size={13} className="text-purple-500 dark:text-purple-400" />
-                ) : (
-                  <Database size={13} className="text-accent-600 dark:text-accent-400" />
-                )}
+                <Database size={13} className="text-accent-600 dark:text-accent-400" />
               </div>
 
               <div className="flex-1 min-w-0">
@@ -250,21 +244,35 @@ export default function IngredientAutocomplete({
                   </div>
                 </div>
               </div>
-
-              {/* Source badge */}
-              <div className="flex-shrink-0 mt-1">
-                {s.source === 'gemini' ? (
-                  <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-purple-100 dark:bg-purple-500/10 text-purple-500 dark:text-purple-400 font-bold uppercase">
-                    AI
-                  </span>
-                ) : (
-                  <span className="text-[8px] px-1.5 py-0.5 rounded-full bg-accent-100 dark:bg-accent-500/10 text-accent-600 dark:text-accent-400 font-bold uppercase">
-                    USDA
-                  </span>
-                )}
-              </div>
             </button>
           ))}
+            </>
+          ) : (
+            /* No results – manual entry fallback */
+            <div className="p-4 text-center">
+              <p className="text-sm text-gray-500 dark:text-dark-400 mb-3">
+                {t('general.notFound')}
+              </p>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-accent-500/10 text-accent-600 dark:text-accent-400 hover:bg-accent-500/20 transition-colors"
+                onClick={() => {
+                  const manual: IngredientSuggestion = {
+                    name: value.trim(),
+                    calories_100g: 0,
+                    protein_100g: 0,
+                    fat_100g: 0,
+                    carbs_100g: 0,
+                    source: 'manual',
+                  };
+                  handleSelect(manual);
+                }}
+              >
+                <PenLine size={14} />
+                {t('general.manualEntry')}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

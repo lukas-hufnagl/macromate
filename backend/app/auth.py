@@ -65,7 +65,7 @@ def decode_access_token(token: str) -> dict:
     except JWTError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token ungültig oder abgelaufen",
+            detail="Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -84,13 +84,13 @@ def get_current_user(
     if user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Token enthält keine User-ID",
+            detail="Authentifizierung fehlgeschlagen. Bitte melde dich erneut an.",
         )
 
     user = db.query(User).filter(User.id == int(user_id)).first()
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User nicht gefunden",
+            detail="Benutzer nicht gefunden. Bitte registriere dich erneut.",
         )
     return user

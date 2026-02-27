@@ -81,7 +81,7 @@ export function useOnboardingTour() {
           popover: {
             title: '👤 Profil & Einstellungen',
             description:
-              'Theme, Sprache und Passwort ändern. Sammle Achievements beim Kochen!',
+              'Theme, Sprache und Passwort ändern.',
             side: 'left' as const,
             align: 'start' as const,
           },

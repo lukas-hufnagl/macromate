@@ -1,6 +1,6 @@
 """
 MacroMate – Ingredients Router
-Ingredient search with OpenFoodFacts + Gemini fallback.
+Ingredient search via USDA FoodData Central.
 Supports multilingual search based on app language setting.
 """
 
@@ -18,8 +18,7 @@ async def search_ingredient(
 ):
     """
     Search for ingredients with nutrition data (per 100g).
-    Uses OpenFoodFacts as primary source, Gemini AI as fallback.
-    Language is determined by the app's i18n setting.
+    Uses USDA FoodData Central as the data source.
     """
     results = await search_ingredients(q, lang=lang, limit=limit)
     return {"results": results, "query": q, "lang": lang}

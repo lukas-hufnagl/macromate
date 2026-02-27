@@ -52,6 +52,9 @@ def setup_database():
     from app.models.recipe import Recipe  # noqa: F401
     from app.models.ingredient import Ingredient  # noqa: F401
     from app.models.mealplan import MealPlan, MealPlanEntry  # noqa: F401
+    from app.models.subscription import Subscription  # noqa: F401
+    from app.models.favorite import Favorite  # noqa: F401
+    from app.models.household import Household  # noqa: F401
 
     Base.metadata.create_all(bind=engine)
     yield
@@ -95,3 +98,37 @@ def auth_headers(client):
     assert response.status_code == 201
     token = response.json()["access_token"]
     return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+def second_auth_headers(client):
+    """Registriert einen zweiten Test-User und gibt Auth-Headers zurück."""
+    response = client.post("/api/auth/register", json={
+        "username": "testuser2",
+        "email": "test2@example.com",
+        "password": "TestPass123",
+    })
+    assert response.status_code == 201
+    token = response.json()["access_token"]
+    return {"Authorization": f"Bearer {token}"}
+
+
+def create_test_recipe(client, headers, name="Test Rezept", **kwargs):
+    """Helper: Erstellt ein Rezept und gibt die Response zurück."""
+    payload = {
+        "name": name,
+        "calories": kwargs.get("calories", 500),
+        "protein": kwargs.get("protein", 30),
+        "fat": kwargs.get("fat", 20),
+        "carbs": kwargs.get("carbs", 50),
+        "category": kwargs.get("category", "fleisch"),
+        "meal_type": kwargs.get("meal_type", "hauptgericht"),
+        "servings": kwargs.get("servings", 2),
+        "ingredients": kwargs.get("ingredients", [
+            {"name": "Hähnchen", "quantity": 200, "unit": "g"},
+            {"name": "Reis", "quantity": 150, "unit": "g"},
+        ]),
+    }
+    res = client.post("/api/recipes", json=payload, headers=headers)
+    assert res.status_code == 201
+    return res.json()

@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     model_config = ConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
+        extra="ignore",
     )
     # ── Umgebung ──
     # "develop" | "test" | "production"  – steuert DB-Name, Logs, etc.
@@ -29,8 +30,11 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24  # 24 Stunden
 
-    # ── AI / APIs ──
-    GEMINI_API_KEY: str = ""
+    # ── Lemon Squeezy ──
+    LEMONSQUEEZY_API_KEY: str = ""
+    LEMONSQUEEZY_STORE_ID: str = ""
+    LEMONSQUEEZY_WEBHOOK_SECRET: str = ""
+    LEMONSQUEEZY_VARIANT_MAP: str = ""  # JSON: {"variant_id": "plan_name"}
 
     # ── Premium ──
     PREMIUM_EMAILS: str = ""

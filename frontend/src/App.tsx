@@ -3,7 +3,7 @@
  * Root-Komponente mit React Router, Theme, i18n und Toast-Notifications.
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './stores/authStore';
@@ -13,8 +13,10 @@ import { ConfirmProvider } from './components/ConfirmDialog';
 // Layout
 import Layout from './components/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
+import OnboardingWizard from './components/OnboardingWizard';
 
 // Pages
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
@@ -22,20 +24,32 @@ import RecipesPage from './pages/RecipesPage';
 import MealPlannerPage from './pages/MealPlannerPage';
 import ShoppingListPage from './pages/ShoppingListPage';
 import ProfilePage from './pages/ProfilePage';
+import PricingPage from './pages/PricingPage';
+import SharedPlanPage from './pages/SharedPlanPage';
 
 export default function App() {
-  const { isAuthenticated, checkAuth } = useAuthStore();
+  const { isAuthenticated, user, checkAuth } = useAuthStore();
   const initTheme = useThemeStore((s) => s.init);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
-  // Beim Start: Auth-Status prüfen + Theme initialisieren
   useEffect(() => {
     checkAuth();
     initTheme();
   }, []);
 
+  useEffect(() => {
+    if (isAuthenticated && user && !user.onboarding_completed) {
+      setShowOnboarding(true);
+    }
+  }, [isAuthenticated, user]);
+
   return (
     <BrowserRouter>
       <ConfirmProvider>
+        {showOnboarding && (
+          <OnboardingWizard onComplete={() => setShowOnboarding(false)} />
+        )}
+
         {/* Toast Notifications */}
         <Toaster
           position="top-right"
@@ -51,7 +65,7 @@ export default function App() {
               backdropFilter: 'blur(20px)',
             },
             success: {
-              iconTheme: { primary: '#18b363', secondary: '#fff' },
+              iconTheme: { primary: '#3B82F6', secondary: '#fff' },
             },
             error: {
               iconTheme: { primary: '#ef4444', secondary: '#fff' },
@@ -60,29 +74,33 @@ export default function App() {
         />
 
         <Routes>
+          {/* Landing Page — unauthenticated users */}
+          <Route
+            path="/"
+            element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LandingPage />}
+          />
+
           {/* Public Routes */}
           <Route
             path="/login"
-            element={isAuthenticated ? <Navigate to="/" replace /> : <LoginPage />}
+            element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <LoginPage />}
           />
           <Route
             path="/register"
-            element={isAuthenticated ? <Navigate to="/" replace /> : <RegisterPage />}
+            element={isAuthenticated ? <Navigate to="/dashboard" replace /> : <RegisterPage />}
           />
 
+          {/* Shared Plan — public, no auth required */}
+          <Route path="/shared/:shareToken" element={<SharedPlanPage />} />
+
           {/* Protected Routes */}
-          <Route
-            element={
-              <ProtectedRoute>
-                <Layout />
-              </ProtectedRoute>
-            }
-          >
-            <Route path="/" element={<DashboardPage />} />
+          <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+            <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/recipes" element={<RecipesPage />} />
             <Route path="/meal-planner" element={<MealPlannerPage />} />
             <Route path="/shopping-list" element={<ShoppingListPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/pricing" element={<PricingPage />} />
           </Route>
 
           {/* Catch-All */}

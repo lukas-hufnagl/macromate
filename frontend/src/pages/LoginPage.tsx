@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
-import { ChefHat, Eye, EyeOff, Loader2, ArrowRight, Sparkles } from 'lucide-react';
+import { ChefHat, Eye, EyeOff, Loader2, ArrowRight, Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function LoginPage() {
@@ -42,7 +42,7 @@ export default function LoginPage() {
           <div className="relative inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-br from-accent-500 to-accent-600 shadow-2xl shadow-accent-500/30 mb-5 animate-glow">
             <ChefHat size={36} className="text-white" />
             <div className="absolute -top-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 flex items-center justify-center shadow-lg">
-              <Sparkles size={12} className="text-white" />
+              <Zap size={12} className="text-white" />
             </div>
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white tracking-tight">

@@ -3,7 +3,7 @@
  * Subtile UI-Vorbereitung für ein zukünftiges Abo-Modell.
  */
 
-import { Crown, Zap, Lock, ChevronRight, Sparkles, Check } from 'lucide-react';
+import { Crown, Zap, Lock, ChevronRight, Check } from 'lucide-react';
 import clsx from 'clsx';
 import { useAuthStore } from '../stores/authStore';
 
@@ -59,15 +59,15 @@ export function PremiumBanner({ variant = 'banner', feature }: Props) {
             </p>
           </div>
           <div className="flex items-center gap-1 text-amber-500">
-            <Sparkles size={20} />
+            <Zap size={20} />
           </div>
         </div>
 
         <div className="relative mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
           {[
-            { label: 'KI-Rezepterkennung', icon: '🤖', active: true },
+            { label: 'USDA-Datenbank', icon: '📊', active: true },
             { label: 'Unbegrenzte Pläne', icon: '♾️', active: true },
-            { label: 'Nährwert-Scanner', icon: '📸', active: true },
+            { label: 'Nährwert-Tracking', icon: '🍎', active: true },
             { label: 'Export & Sync', icon: '☁️', active: true },
           ].map((f) => (
             <div key={f.label} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/60 dark:bg-dark-900/40 text-xs text-gray-700 dark:text-dark-200 font-medium border border-green-500/10">
@@ -95,7 +95,7 @@ export function PremiumBanner({ variant = 'banner', feature }: Props) {
             <span className="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-600 dark:text-amber-400 text-[10px] font-semibold uppercase">Coming Soon</span>
           </h3>
           <p className="text-sm text-gray-500 dark:text-dark-400 mt-0.5">
-            KI-gestützte Ernährungsplanung, unbegrenzte Rezepte, erweiterte Analysen und mehr.
+            Erweiterte Ernährungsplanung, unbegrenzte Rezepte, detaillierte Analysen und mehr.
           </p>
         </div>
         <button className="btn-secondary text-sm whitespace-nowrap opacity-60 cursor-not-allowed" disabled>
@@ -106,9 +106,9 @@ export function PremiumBanner({ variant = 'banner', feature }: Props) {
 
       <div className="relative mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
         {[
-          { label: 'KI-Rezeptvorschläge', icon: '🤖' },
+          { label: 'USDA-Datenbank', icon: '📊' },
           { label: 'Unbegrenzte Pläne', icon: '♾️' },
-          { label: 'Nährwert-Scanner', icon: '📸' },
+          { label: 'Nährwert-Tracking', icon: '🍎' },
           { label: 'Export & Sync', icon: '☁️' },
         ].map((f) => (
           <div key={f.label} className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white/50 dark:bg-dark-900/30 text-xs text-gray-600 dark:text-dark-300">

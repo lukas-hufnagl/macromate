@@ -28,14 +28,14 @@ def register(request: Request, data: UserCreate, db: Session = Depends(get_db)):
     if db.query(User).filter(User.username == data.username).first():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Username bereits vergeben",
+            detail="Dieser Benutzername ist leider schon vergeben. Probier einen anderen!",
         )
 
     # Prüfe ob Email bereits vergeben
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
-            detail="Email bereits registriert",
+            detail="Diese E-Mail-Adresse ist bereits registriert. Versuch dich einzuloggen!",
         )
 
     # User erstellen mit gehashtem Passwort

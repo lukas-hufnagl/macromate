@@ -1,16 +1,15 @@
 /**
  * MacroMate – RecipeForm Component (v2)
- * Premium form with per-ingredient editable nutrition.
- * Auto-loads nutrition from USDA/Gemini search, user can override.
- * Auto-sums total recipe macros from ingredient data.
+ * Per-ingredient editable nutrition with auto-sum from OpenFoodFacts data.
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import type { Recipe, RecipeCreate, RecipeUpdate, Ingredient, IngredientSuggestion } from '../types';
 import { CATEGORY_OPTIONS, MEAL_TYPE_OPTIONS, UNIT_OPTIONS } from '../types';
-import { X, Plus, Trash2, Loader2, Save, Zap, ChevronDown, ChevronUp, Info, Sparkles } from 'lucide-react';
+import { X, Plus, Trash2, Loader2, Save, Zap, ChevronDown, ChevronUp, Info, GripVertical } from 'lucide-react';
 import { recipesAPI } from '../services/api';
 import IngredientAutocomplete from './IngredientAutocomplete';
+import CustomSelect from './CustomSelect';
 import clsx from 'clsx';
 
 interface Props {
@@ -63,10 +62,9 @@ export default function RecipeForm({ recipe, onSubmit, onClose, isLoading }: Pro
     { ...EMPTY_INGREDIENT },
   ]);
 
-  const [isCalculating, setIsCalculating] = useState(false);
-  const [calcError, setCalcError] = useState<string | null>(null);
   const [expandedIngredient, setExpandedIngredient] = useState<number | null>(null);
   const [useAutoSum, setUseAutoSum] = useState(true);
+  const [steps, setSteps] = useState<string[]>(['']);
 
   // Beim Bearbeiten: Formular mit bestehenden Daten befüllen
   useEffect(() => {
@@ -83,6 +81,13 @@ export default function RecipeForm({ recipe, onSubmit, onClose, isLoading }: Pro
         carbs: recipe.carbs,
         servings: recipe.servings,
       });
+      // Parse instructions into steps
+      const instrText = recipe.instructions || '';
+      const parsed = instrText
+        .split(/\n/)
+        .map((s) => s.replace(/^\d+[\.\)]\s*/, '').trim())
+        .filter(Boolean);
+      setSteps(parsed.length > 0 ? parsed : ['']);
       setIngredients(
         recipe.ingredients.length > 0
           ? recipe.ingredients.map((i) => ({
@@ -184,39 +189,36 @@ export default function RecipeForm({ recipe, onSubmit, onClose, isLoading }: Pro
     if (expandedIngredient === index) setExpandedIngredient(null);
   };
 
-  const calculateNutrition = async () => {
-    const validIngredients = ingredients.filter((i) => i.name.trim() !== '');
-    if (validIngredients.length === 0) {
-      setCalcError('Bitte mindestens eine Zutat mit Namen eingeben');
-      return;
-    }
-    setIsCalculating(true);
-    setCalcError(null);
-    try {
-      const result = await recipesAPI.calculateNutrition(
-        validIngredients.map((i) => ({ name: i.name, quantity: i.quantity, unit: i.unit })),
-        form.servings || 1,
-      );
-      setForm((prev) => ({
-        ...prev,
-        calories: result.calories,
-        protein: result.protein,
-        fat: result.fat,
-        carbs: result.carbs,
-      }));
-      setUseAutoSum(false); // AI override
-    } catch (err: any) {
-      setCalcError(err?.response?.data?.detail || 'Nährwertberechnung fehlgeschlagen');
-    } finally {
-      setIsCalculating(false);
-    }
-  };
+  // ── Step Management ──
+  const updateStep = useCallback((index: number, value: string) => {
+    setSteps((prev) => prev.map((s, i) => (i === index ? value : s)));
+  }, []);
+
+  const addStep = useCallback(() => {
+    setSteps((prev) => [...prev, '']);
+  }, []);
+
+  const removeStep = useCallback((index: number) => {
+    setSteps((prev) => prev.filter((_, i) => i !== index));
+  }, []);
+
+  const moveStep = useCallback((from: number, to: number) => {
+    setSteps((prev) => {
+      const newSteps = [...prev];
+      const [moved] = newSteps.splice(from, 1);
+      newSteps.splice(to, 0, moved);
+      return newSteps;
+    });
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const validIngredients = ingredients.filter((i) => i.name.trim() !== '');
+    const validSteps = steps.filter((s) => s.trim() !== '');
+    const instructions = validSteps.map((s, i) => `${i + 1}. ${s}`).join('\n');
     await onSubmit({
       ...form,
+      instructions,
       ingredients: validIngredients,
     } as RecipeCreate);
   };
@@ -225,14 +227,14 @@ export default function RecipeForm({ recipe, onSubmit, onClose, isLoading }: Pro
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        className="absolute inset-0 bg-black/40 dark:bg-black/60 backdrop-blur-[2px] dark:backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Modal */}
-      <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto glass-card animate-slide-up">
+      <div className="relative w-full max-w-2xl max-h-[92vh] overflow-y-auto bg-white dark:bg-dark-900 border border-gray-200 dark:border-dark-800/50 rounded-2xl shadow-2xl animate-slide-up">
         {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between p-5 sm:p-6 pb-4 bg-white/90 dark:bg-dark-900/90 backdrop-blur-xl border-b border-gray-200/50 dark:border-dark-800/50 rounded-t-2xl">
+        <div className="sticky top-0 z-10 flex items-center justify-between p-5 sm:p-6 pb-4 bg-white dark:bg-dark-900 border-b border-gray-100 dark:border-dark-800/50 rounded-t-2xl">
           <div>
             <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white">
               {isEditing ? 'Rezept bearbeiten' : 'Neues Rezept'}
@@ -279,31 +281,21 @@ export default function RecipeForm({ recipe, onSubmit, onClose, isLoading }: Pro
           <div className="grid grid-cols-3 gap-3">
             <div>
               <label className="input-label">Kategorie *</label>
-              <select
-                className="select text-sm"
+              <CustomSelect
+                options={CATEGORY_OPTIONS}
                 value={form.category}
-                onChange={(e) => updateField('category', e.target.value)}
-              >
-                {CATEGORY_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => updateField('category', val)}
+                size="sm"
+              />
             </div>
             <div>
               <label className="input-label">Mahlzeittyp</label>
-              <select
-                className="select text-sm"
+              <CustomSelect
+                options={MEAL_TYPE_OPTIONS}
                 value={form.meal_type}
-                onChange={(e) => updateField('meal_type', e.target.value)}
-              >
-                {MEAL_TYPE_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => updateField('meal_type', val)}
+                size="sm"
+              />
             </div>
             <div>
               <label className="input-label">Portionen</label>
@@ -322,7 +314,6 @@ export default function RecipeForm({ recipe, onSubmit, onClose, isLoading }: Pro
             <div className="flex items-center justify-between mb-3">
               <div>
                 <h3 className="text-sm font-semibold text-gray-700 dark:text-dark-200 flex items-center gap-2">
-                  <Sparkles size={14} className="text-accent-400" />
                   Zutaten
                 </h3>
                 <p className="text-[11px] text-gray-400 dark:text-dark-500 mt-0.5">
@@ -374,17 +365,13 @@ export default function RecipeForm({ recipe, onSubmit, onClose, isLoading }: Pro
                           updateIngredient(index, 'quantity', Number(e.target.value))
                         }
                       />
-                      <select
-                        className="select w-20 sm:w-24 text-sm py-2 px-2"
+                      <CustomSelect
+                        className="w-20 sm:w-24"
+                        options={UNIT_OPTIONS}
                         value={ing.unit}
-                        onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
-                      >
-                        {UNIT_OPTIONS.map((opt) => (
-                          <option key={opt.value} value={opt.value}>
-                            {opt.label}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(val) => updateIngredient(index, 'unit', val)}
+                        size="sm"
+                      />
                       {ingredients.length > 1 && (
                         <button
                           type="button"
@@ -515,32 +502,8 @@ export default function RecipeForm({ recipe, onSubmit, onClose, isLoading }: Pro
                   <Zap size={12} />
                   Auto-Summe {useAutoSum ? 'AN' : 'AUS'}
                 </button>
-                <button
-                  type="button"
-                  onClick={calculateNutrition}
-                  disabled={isCalculating}
-                  className="btn-ghost text-accent-400 text-sm flex items-center gap-1.5 hover:text-accent-300 disabled:opacity-50"
-                  title="Nährwerte per AI berechnen"
-                >
-                  {isCalculating ? (
-                    <>
-                      <Loader2 size={14} className="animate-spin" />
-                      <span className="hidden sm:inline">Berechne...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles size={14} />
-                      <span className="hidden sm:inline">AI-Berechnung</span>
-                    </>
-                  )}
-                </button>
               </div>
             </div>
-            {calcError && (
-              <div className="mb-3 p-2 rounded-lg bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm">
-                {calcError}
-              </div>
-            )}
             <div className="grid grid-cols-4 gap-2 sm:gap-3">
               <div className="p-3 rounded-xl bg-fire-400/10 border border-fire-400/20 text-center">
                 <label className="text-[10px] text-fire-400 font-medium block mb-1">🔥 Kalorien</label>
@@ -604,15 +567,92 @@ export default function RecipeForm({ recipe, onSubmit, onClose, isLoading }: Pro
             </div>
           </div>
 
-          {/* Zubereitung */}
+          {/* Zubereitung – Step by Step */}
           <div>
-            <label className="input-label">Zubereitung / Anleitung</label>
-            <textarea
-              className="input min-h-[100px] resize-y text-sm"
-              placeholder="Schritt-für-Schritt Anleitung...&#10;1. Zuerst...&#10;2. Dann...&#10;3. Zum Schluss..."
-              value={form.instructions}
-              onChange={(e) => updateField('instructions', e.target.value)}
-            />
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-dark-200 flex items-center gap-2">
+                  <span className="text-accent-400">📝</span>
+                  Zubereitung
+                </h3>
+                <p className="text-[11px] text-gray-400 dark:text-dark-500 mt-0.5">
+                  Schritt für Schritt Anleitung
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={addStep}
+                className="btn-ghost text-accent-400 text-sm"
+              >
+                <Plus size={16} />
+                Schritt
+              </button>
+            </div>
+            <div className="space-y-2">
+              {steps.map((step, index) => (
+                <div key={index} className="flex items-start gap-2 group">
+                  <div className="flex flex-col items-center pt-2.5 gap-1">
+                    <span className="w-6 h-6 rounded-full bg-accent-500/10 dark:bg-accent-500/15 text-accent-600 dark:text-accent-400 text-xs font-bold flex items-center justify-center flex-shrink-0">
+                      {index + 1}
+                    </span>
+                    {index > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => moveStep(index, index - 1)}
+                        className="p-0.5 text-gray-300 dark:text-dark-600 hover:text-accent-400 transition-colors opacity-0 group-hover:opacity-100"
+                        title="Nach oben"
+                      >
+                        <ChevronUp size={12} />
+                      </button>
+                    )}
+                    {index < steps.length - 1 && (
+                      <button
+                        type="button"
+                        onClick={() => moveStep(index, index + 1)}
+                        className="p-0.5 text-gray-300 dark:text-dark-600 hover:text-accent-400 transition-colors opacity-0 group-hover:opacity-100"
+                        title="Nach unten"
+                      >
+                        <ChevronDown size={12} />
+                      </button>
+                    )}
+                  </div>
+                  <textarea
+                    className="input min-h-[44px] resize-none text-sm flex-1"
+                    placeholder={`Schritt ${index + 1}...`}
+                    value={step}
+                    rows={1}
+                    onChange={(e) => {
+                      updateStep(index, e.target.value);
+                      // Auto-resize
+                      e.target.style.height = 'auto';
+                      e.target.style.height = e.target.scrollHeight + 'px';
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        if (index === steps.length - 1) {
+                          addStep();
+                        }
+                        // Focus next step after render
+                        setTimeout(() => {
+                          const nextInput = e.currentTarget.parentElement?.nextElementSibling?.querySelector('textarea');
+                          nextInput?.focus();
+                        }, 50);
+                      }
+                    }}
+                  />
+                  {steps.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeStep(index)}
+                      className="p-1.5 mt-2 text-gray-300 dark:text-dark-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100 flex-shrink-0"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Submit */}

@@ -33,12 +33,16 @@ services:
       db:
         condition: service_healthy
     environment:
-      APP_ENV: develop
-      DATABASE_URL: postgresql://macromate:macromate@db:5432/macromate_dev
+      APP_ENV: ${APP_ENV:-develop}
+      DATABASE_URL: postgresql://macromate:macromate@db:5432/${POSTGRES_DB:-macromate_dev}
       SECRET_KEY: ${SECRET_KEY:-dev-secret-change-in-production}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
       PREMIUM_EMAILS: ${PREMIUM_EMAILS:-}
-      CORS_ORIGINS: '["http://localhost", "http://localhost:5173", "http://localhost:5174"]'
+      LEMONSQUEEZY_STORE_ID: ${LEMONSQUEEZY_STORE_ID:-}
+      LEMONSQUEEZY_API_KEY: ${LEMONSQUEEZY_API_KEY:-}
+      LEMONSQUEEZY_WEBHOOK_SECRET: ${LEMONSQUEEZY_WEBHOOK_SECRET:-}
+      LEMONSQUEEZY_VARIANT_MAP: ${LEMONSQUEEZY_VARIANT_MAP:-}
+      CORS_ORIGINS: '["http://localhost", "http://localhost:5173", "http://localhost:5174", "${FRONTEND_URL:-http://localhost}"]'
     ports:
       - "8000:8000"
 
